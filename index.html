@@ -97,14 +97,12 @@
   }
   .click-pill:hover { transform: scale(1.04); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
   .click-pill.active-pill { border-width: 2.5px !important; box-shadow: 0 0 0 3px rgba(21,101,192,0.2); transform: scale(1.04); }
-
   .click-pill.hot { background: #fff5f5; border-color: #ef5350; }
   .click-pill.warm { background: #fff8f0; border-color: #ffa726; }
   .click-pill.cold { background: #f0f7ff; border-color: #42a5f5; }
   .click-pill.nq { background: #fafafa; border-color: #bdbdbd; }
   .click-pill.virtual { background: #f3e5f5; border-color: #ab47bc; }
   .click-pill.inperson { background: #e8f5e9; border-color: #66bb6a; }
-
   .click-pill .num { font-size: 26px; font-weight: 700; }
   .click-pill.hot .num { color: #e53935; }
   .click-pill.warm .num { color: #fb8c00; }
@@ -139,18 +137,6 @@
   .bar-month { font-size: 11px; color: #888; }
   .bar-val { font-size: 10px; color: #1976d2; font-weight: 600; }
 
-  .program-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
-  .program-card {
-    background: #fff; border: 1px solid #e0e7ef; border-radius: 10px;
-    padding: 16px; transition: border-color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  }
-  .program-card:hover { border-color: #1976d2; box-shadow: 0 4px 14px rgba(21,101,192,0.1); }
-  .program-card .prog-name { font-size: 13px; font-weight: 700; color: #1565c0; margin-bottom: 4px; }
-  .program-card .prog-team { font-size: 11px; color: #888; margin-bottom: 8px; }
-  .program-card .prog-metric { font-size: 11px; color: #888; margin-top: 4px; }
-  .program-card .prog-value { font-size: 28px; font-weight: 700; color: #43a047; }
-
   .loading { text-align: center; padding: 60px; color: #888; font-size: 15px; }
   .spinner {
     display: inline-block; width: 28px; height: 28px;
@@ -162,7 +148,13 @@
 
   .error-box {
     background: #fff5f5; border: 1px solid #ef9a9a;
-    border-radius: 8px; padding: 24px; color: #c62828; line-height: 1.7;
+    border-radius: 8px; padding: 24px; color: #c62828; line-height: 1.8;
+  }
+
+  .debug-box {
+    background: #f3f4f6; border: 1px solid #d1d5db;
+    border-radius: 8px; padding: 16px; margin-bottom: 20px;
+    font-size: 12px; color: #374151; line-height: 1.6;
   }
 
   .table-controls {
@@ -228,22 +220,22 @@
 </div>
 
 <script>
-// ✅ YOUR NEW APPS SCRIPT URL WITH JSONP SUPPORT
+// ✅ YOUR APPS SCRIPT URL
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxAtk-HpNjX8BehmGw63tUrkyDzHVJfloEzQicVkPEOMIOzCZNgvVDWhFN114Bqk5Os/exec";
 
 let allData = {};
 let activeQuickFilter = null;
+let detectedSheets = {};
 
-// ✅ JSONP — bypasses CORS completely, no proxy needed
+// ✅ JSONP — no CORS issues
 function fetchWithJsonp(url) {
   return new Promise((resolve, reject) => {
     const cbName = "jsonpCb_" + Date.now() + "_" + Math.floor(Math.random() * 9999);
     const script = document.createElement("script");
-
     const timer = setTimeout(() => {
       cleanup();
-      reject(new Error("Timeout: Apps Script took too long. Make sure it's deployed as 'Anyone'."));
-    }, 12000);
+      reject(new Error("Timeout — Apps Script took too long. Check deployment settings."));
+    }, 15000);
 
     function cleanup() {
       clearTimeout(timer);
@@ -251,16 +243,9 @@ function fetchWithJsonp(url) {
       if (script.parentNode) document.head.removeChild(script);
     }
 
-    window[cbName] = function(data) {
-      cleanup();
-      resolve(data);
-    };
-
+    window[cbName] = function(data) { cleanup(); resolve(data); };
     script.src = url + "?callback=" + cbName + "&t=" + Date.now();
-    script.onerror = function() {
-      cleanup();
-      reject(new Error("Script load failed. Check your Apps Script URL and deployment settings."));
-    };
+    script.onerror = function() { cleanup(); reject(new Error("Script load failed.")); };
     document.head.appendChild(script);
   });
 }
@@ -270,8 +255,20 @@ async function loadData() {
     '<div class="loading"><span class="spinner"></span>Fetching live data from Google Sheets...</div>';
   try {
     allData = await fetchWithJsonp(WEB_APP_URL);
+
+    // ✅ AUTO-DETECT sheet names (handles any naming)
+    const keys = Object.keys(allData);
+    detectedSheets.meetings = keys.find(k =>
+      k.toLowerCase().includes("meeting") || k.toLowerCase().includes("master_data")
+    ) || keys[0];
+    detectedSheets.email = keys.find(k =>
+      k.toLowerCase().includes("email") || k.toLowerCase().includes("performance")
+    ) || keys[1] || keys[0];
+
     document.getElementById("lastUpdated").textContent =
-      "✅ Live data loaded · " + new Date().toLocaleString();
+      "✅ Live · Meetings: "" + detectedSheets.meetings +
+      "" · Email: "" + detectedSheets.email + "" · " + new Date().toLocaleString();
+
     activeQuickFilter = null;
     applyFilters();
   } catch(err) {
@@ -279,19 +276,19 @@ async function loadData() {
       <div class="error-box">
         <strong>❌ Could not load data</strong><br><br>
         <b>Error:</b> ${err.message}<br><br>
-        <b>Fix checklist:</b><br>
-        1. Go to Apps Script → Deploy → Manage Deployments<br>
-        2. Edit your deployment → set <b>"Who has access" = Anyone</b><br>
-        3. Click <b>New Version</b> → Deploy<br>
-        4. Make sure your Apps Script has the <b>JSONP callback support</b> code<br>
-        5. Come back and click 🔄 Refresh
+        <b>Fix steps:</b><br>
+        1. Apps Script → Deploy → Manage Deployments → Edit<br>
+        2. Set <b>Who has access = Anyone</b><br>
+        3. Create <b>New Version</b> → Deploy<br>
+        4. Make sure your Apps Script has the <b>JSONP callback</b> code<br>
+        5. Click 🔄 Refresh
       </div>`;
   }
 }
 
 function applyFilters() {
-  const month = document.getElementById("filterMonth").value;
-  const team = document.getElementById("filterTeam").value;
+  const month   = document.getElementById("filterMonth").value;
+  const team    = document.getElementById("filterTeam").value;
   const program = document.getElementById("filterProgram").value;
   renderDashboard(month, team, program);
 }
@@ -306,9 +303,14 @@ function clearQuickFilter() {
   applyFilters();
 }
 
-function getVal(row, ...keys) {
+// ✅ SMART column getter — tries every possible variation
+function g(row, ...keys) {
   for (const k of keys) {
-    if (row[k] !== undefined && row[k] !== "") return String(row[k]).trim();
+    // exact match
+    if (row[k] !== undefined && String(row[k]).trim() !== "") return String(row[k]).trim();
+    // case-insensitive match
+    const found = Object.keys(row).find(rk => rk.toLowerCase() === k.toLowerCase());
+    if (found && row[found] !== undefined && String(row[found]).trim() !== "") return String(row[found]).trim();
   }
   return "";
 }
@@ -316,153 +318,139 @@ function getVal(row, ...keys) {
 function filterRows(sheetName, month, team, program) {
   const rows = allData[sheetName] || [];
   return rows.filter(r => {
-    const m = getVal(r, "Month", "month");
-    const t = getVal(r, "Team", "team");
-    const p = getVal(r, "Program", "program");
-    return (month === "All" || m === month) &&
-           (team === "All" || t === team) &&
+    const m = g(r, "Month", "month");
+    const t = g(r, "Team", "team");
+    const p = g(r, "Program", "program");
+    return (month === "All"   || m === month) &&
+           (team === "All"    || t === team) &&
            (program === "All" || p === program);
   });
 }
 
-function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function num(v) { const n = parseFloat(String(v).replace(/,/g,"")); return isNaN(n) ? 0 : n; }
 
-function funnelRow(label, value, total, color) {
+function funnelBar(label, value, total, color) {
   const pct = total > 0 ? Math.max((value / total) * 100, 2) : 2;
   return `<div class="funnel-row">
     <div class="funnel-label">${label}</div>
     <div class="funnel-bar-wrap">
-      <div class="funnel-bar" style="width:${pct}%;background:${color};">${value > 0 ? value.toLocaleString() : ''}</div>
+      <div class="funnel-bar" style="width:${pct}%;background:${color};">${value > 0 ? value.toLocaleString() : ""}</div>
     </div>
     <div class="funnel-value">${value.toLocaleString()}</div>
   </div>`;
 }
 
 function qualBadge(q) {
-  const l = (q || "").toLowerCase();
-  if (l === "hot") return `<span class="badge hot">🔥 Hot</span>`;
-  if (l === "warm") return `<span class="badge warm">🟠 Warm</span>`;
-  if (l === "cold") return `<span class="badge cold">🔵 Cold</span>`;
-  if (l) return `<span class="badge nq">⚪ ${q}</span>`;
-  return `<span style="color:#ccc;">—</span>`;
+  const l = (q||"").toLowerCase();
+  if (l==="hot")  return `<span class="badge hot">🔥 Hot</span>`;
+  if (l==="warm") return `<span class="badge warm">🟠 Warm</span>`;
+  if (l==="cold") return `<span class="badge cold">🔵 Cold</span>`;
+  if (l)          return `<span class="badge nq">⚪ ${q}</span>`;
+  return `<span style="color:#ccc">—</span>`;
 }
 
 function statusBadge(s) {
-  const l = (s || "").toLowerCase();
-  if (l === "done" || l === "completed") return `<span class="badge done">✅ Done</span>`;
+  const l = (s||"").toLowerCase();
+  if (l==="done"||l==="completed") return `<span class="badge done">✅ Done</span>`;
   if (l) return `<span class="badge progress">⏳ ${s}</span>`;
-  return `<span style="color:#ccc;">—</span>`;
+  return `<span style="color:#ccc">—</span>`;
 }
 
 function typeBadge(t) {
-  const l = (t || "").toLowerCase();
-  if (l === "virtual") return `<span class="badge virtual">💻 Virtual</span>`;
-  if (l === "in-person" || l === "inperson") return `<span class="badge inperson">🏢 In-Person</span>`;
+  const l = (t||"").toLowerCase();
+  if (l==="virtual")   return `<span class="badge virtual">💻 Virtual</span>`;
+  if (l.includes("person")) return `<span class="badge inperson">🏢 In-Person</span>`;
   if (l) return `<span class="badge nq">${t}</span>`;
-  return `<span style="color:#ccc;">—</span>`;
+  return `<span style="color:#ccc">—</span>`;
 }
 
 function renderTableRows(rows) {
-  if (!rows.length) {
-    return `<tr><td colspan="11" style="text-align:center;color:#bbb;padding:40px;font-style:italic;">
-      No meetings found for the selected filters</td></tr>`;
-  }
-  return rows.map((r, i) => `<tr>
-    <td style="color:#bbb;font-size:11px;">${i + 1}</td>
-    <td>${getVal(r,"Date","date") || "—"}</td>
-    <td>${getVal(r,"Month","month") || "—"}</td>
-    <td>${getVal(r,"Program","program") || "—"}</td>
-    <td style="font-weight:600;color:#1565c0;">${getVal(r,"Company","Startup","startup","company","Name","name") || "—"}</td>
-    <td>${getVal(r,"Contact","Contact Person","contact","Person","person") || "—"}</td>
-    <td>${typeBadge(getVal(r,"Meeting_Type","Meeting Type","meeting_type","Type","type"))}</td>
-    <td>${statusBadge(getVal(r,"Status","status"))}</td>
-    <td>${qualBadge(getVal(r,"Qualification","qualification"))}</td>
-    <td style="font-size:12px;">${getVal(r,"Next_Action","Next Action","next_action","NextAction") || "—"}</td>
-    <td style="font-size:11px;color:#777;max-width:160px;white-space:normal;">${getVal(r,"Notes","notes","Remarks","remarks") || "—"}</td>
+  if (!rows.length) return `<tr><td colspan="10" style="text-align:center;color:#bbb;padding:40px;font-style:italic;">No records found</td></tr>`;
+  return rows.map((r,i) => `<tr>
+    <td style="color:#bbb;font-size:11px;">${i+1}</td>
+    <td>${g(r,"Date","date")||"—"}</td>
+    <td>${g(r,"Month","month")||"—"}</td>
+    <td>${g(r,"Program","program")||"—"}</td>
+    <td style="font-weight:600;color:#1565c0;">${g(r,"Company","Startup","startup","company","Name","name","Organisation","organization")||"—"}</td>
+    <td>${g(r,"Contact","Contact Person","contact","Person","person")||"—"}</td>
+    <td>${typeBadge(g(r,"Meeting_Type","Meeting Type","meeting_type","MeetingType","Type","type"))}</td>
+    <td>${statusBadge(g(r,"Status","status"))}</td>
+    <td>${qualBadge(g(r,"Qualification","qualification","Lead Status","lead_status"))}</td>
+    <td style="font-size:12px;">${g(r,"Next_Action","Next Action","next_action","NextAction","Next Step","next_step")||"—"}</td>
   </tr>`).join("");
 }
 
 function renderDashboard(month, team, program) {
-  const sheetNames = Object.keys(allData);
-  if (!sheetNames.length) {
-    document.getElementById("mainContent").innerHTML =
-      `<div class="error-box">⚠️ No sheets found in response. Check your Apps Script code.</div>`;
-    return;
-  }
+  const ms = detectedSheets.meetings;
+  const es = detectedSheets.email;
 
-  const meetSheet = sheetNames.find(s => s.toLowerCase().includes("meet")) || sheetNames[0];
-  const emailSheet = sheetNames.find(s =>
-    s.toLowerCase().includes("email") || s.toLowerCase().includes("master") || s.toLowerCase().includes("perf")
-  ) || sheetNames[1] || sheetNames[0];
+  const emailRows = filterRows(es, month, team, program);
+  const meetRows  = filterRows(ms, month, team, program);
 
-  const emailRows = filterRows(emailSheet, month, team, program);
-  const meetRows  = filterRows(meetSheet, month, team, program);
+  // ── Email KPIs ──
+  const totalSent      = emailRows.reduce((s,r)=>s+num(g(r,"Sent","sent","Emails Sent")),0);
+  const totalDelivered = emailRows.reduce((s,r)=>s+num(g(r,"Delivered","delivered")),0);
+  const totalOpens     = emailRows.reduce((s,r)=>s+num(g(r,"Opens","opens","Unique Opens","unique_opens")),0);
+  const totalClicks    = emailRows.reduce((s,r)=>s+num(g(r,"Clicks","clicks","Unique Clicks","unique_clicks","Link Clicks")),0);
+  const totalReplies   = emailRows.reduce((s,r)=>s+num(g(r,"Replies","replies","Unique Replies","unique_replies")),0);
+  const totalBounces   = emailRows.reduce((s,r)=>s+num(g(r,"Bounces","bounces")),0);
 
-  // Email metrics
-  const totalSent      = emailRows.reduce((s,r) => s + num(getVal(r,"Sent","sent")), 0);
-  const totalDelivered = emailRows.reduce((s,r) => s + num(getVal(r,"Delivered","delivered")), 0);
-  const totalOpens     = emailRows.reduce((s,r) => s + num(getVal(r,"Unique Opens","Opens","opens")), 0);
-  const totalClicks    = emailRows.reduce((s,r) => s + num(getVal(r,"Unique Clicks","Clicks","clicks")), 0);
-  const totalReplies   = emailRows.reduce((s,r) => s + num(getVal(r,"Unique Replies","Replies","replies")), 0);
-  const totalBounces   = emailRows.reduce((s,r) => s + num(getVal(r,"Bounces","bounces")), 0);
-  const openRate  = totalSent > 0 ? ((totalOpens/totalSent)*100).toFixed(1) : "0.0";
-  const clickRate = totalSent > 0 ? ((totalClicks/totalSent)*100).toFixed(1) : "0.0";
-  const replyRate = totalSent > 0 ? ((totalReplies/totalSent)*100).toFixed(1) : "0.0";
+  const openRate  = totalSent>0?((totalOpens/totalSent)*100).toFixed(1):"0.0";
+  const clickRate = totalSent>0?((totalClicks/totalSent)*100).toFixed(1):"0.0";
+  const replyRate = totalSent>0?((totalReplies/totalSent)*100).toFixed(1):"0.0";
 
-  // Meetings metrics
-  const hot     = meetRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "hot").length;
-  const warm    = meetRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "warm").length;
-  const cold    = meetRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "cold").length;
-  const nq      = meetRows.filter(r => {
-    const q = getVal(r,"Qualification","qualification").toLowerCase();
-    return q === "not qualified" || q === "nq";
-  }).length;
-  const virtual  = meetRows.filter(r => getVal(r,"Meeting_Type","Meeting Type","meeting_type").toLowerCase() === "virtual").length;
-  const inperson = meetRows.filter(r => {
-    const t = getVal(r,"Meeting_Type","Meeting Type","meeting_type").toLowerCase();
-    return t === "in-person" || t === "inperson" || t === "in person";
-  }).length;
-  const proposals = meetRows.filter(r => getVal(r,"Next_Action","Next Action","next_action").toLowerCase().includes("proposal")).length;
-  const followups  = meetRows.filter(r => getVal(r,"Next_Action","Next Action","next_action").toLowerCase().includes("follow")).length;
+  // ── Meetings KPIs ──
+  const isHot  = r => g(r,"Qualification","qualification","Lead Status").toLowerCase()==="hot";
+  const isWarm = r => g(r,"Qualification","qualification","Lead Status").toLowerCase()==="warm";
+  const isCold = r => g(r,"Qualification","qualification","Lead Status").toLowerCase()==="cold";
+  const isNQ   = r => { const q=g(r,"Qualification","qualification","Lead Status").toLowerCase(); return q==="nq"||q==="not qualified"; };
+  const isVirt = r => g(r,"Meeting_Type","Meeting Type","meeting_type","Type").toLowerCase()==="virtual";
+  const isIP   = r => { const t=g(r,"Meeting_Type","Meeting Type","meeting_type","Type").toLowerCase(); return t==="in-person"||t==="inperson"||t.includes("person"); };
 
-  // Table: apply quick filter
+  const hot      = meetRows.filter(isHot).length;
+  const warm     = meetRows.filter(isWarm).length;
+  const cold     = meetRows.filter(isCold).length;
+  const nq       = meetRows.filter(isNQ).length;
+  const virtual  = meetRows.filter(isVirt).length;
+  const inperson = meetRows.filter(isIP).length;
+  const proposals= meetRows.filter(r=>g(r,"Next_Action","Next Action","next_action","Next Step").toLowerCase().includes("proposal")).length;
+  const followups= meetRows.filter(r=>g(r,"Next_Action","Next Action","next_action","Next Step").toLowerCase().includes("follow")).length;
+
+  // ── Table filter ──
   let tableRows = [...meetRows];
-  if (activeQuickFilter === "hot")      tableRows = tableRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "hot");
-  else if (activeQuickFilter === "warm") tableRows = tableRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "warm");
-  else if (activeQuickFilter === "cold") tableRows = tableRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "cold");
-  else if (activeQuickFilter === "nq")   tableRows = tableRows.filter(r => {
-    const q = getVal(r,"Qualification","qualification").toLowerCase();
-    return q === "not qualified" || q === "nq";
-  });
-  else if (activeQuickFilter === "virtual")  tableRows = tableRows.filter(r => getVal(r,"Meeting_Type","Meeting Type","meeting_type").toLowerCase() === "virtual");
-  else if (activeQuickFilter === "inperson") tableRows = tableRows.filter(r => {
-    const t = getVal(r,"Meeting_Type","Meeting Type","meeting_type").toLowerCase();
-    return t === "in-person" || t === "inperson" || t === "in person";
-  });
+  if      (activeQuickFilter==="hot")      tableRows=tableRows.filter(isHot);
+  else if (activeQuickFilter==="warm")     tableRows=tableRows.filter(isWarm);
+  else if (activeQuickFilter==="cold")     tableRows=tableRows.filter(isCold);
+  else if (activeQuickFilter==="nq")       tableRows=tableRows.filter(isNQ);
+  else if (activeQuickFilter==="virtual")  tableRows=tableRows.filter(isVirt);
+  else if (activeQuickFilter==="inperson") tableRows=tableRows.filter(isIP);
 
-  // Monthly trend
+  // ── Monthly bar chart ──
   const months = ["Oct-25","Nov-25","Dec-25","Jan-26","Feb-26","Mar-26"];
-  const allEmail = allData[emailSheet] || [];
+  const allEmail = allData[es] || [];
   const monthlyData = months.map(m => ({
     month: m,
-    sent: allEmail.filter(r => getVal(r,"Month","month") === m && (team === "All" || getVal(r,"Team","team") === team))
-                  .reduce((s,r) => s + num(getVal(r,"Sent","sent")), 0)
+    sent: allEmail
+      .filter(r=>g(r,"Month","month")===m && (team==="All"||g(r,"Team","team")===team))
+      .reduce((s,r)=>s+num(g(r,"Sent","sent","Emails Sent")),0)
   }));
-  const maxSent = Math.max(...monthlyData.map(d => d.sent), 1);
+  const maxSent = Math.max(...monthlyData.map(d=>d.sent),1);
 
-  const filterLabels = { hot:"🔥 Hot Leads", warm:"🟠 Warm Leads", cold:"🔵 Cold Leads",
-    nq:"⚪ Not Qualified", virtual:"💻 Virtual Meetings", inperson:"🏢 In-Person Meetings" };
+  const filterLabels = {
+    hot:"🔥 Hot Leads", warm:"🟠 Warm Leads", cold:"🔵 Cold Leads",
+    nq:"⚪ Not Qualified", virtual:"💻 Virtual Meetings", inperson:"🏢 In-Person Meetings"
+  };
 
   document.getElementById("mainContent").innerHTML = `
 
-    ${activeQuickFilter ? `
+    ${activeQuickFilter?`
     <div class="active-filter-bar">
-      <span style="font-size:13px;color:#555;font-weight:600;">Filtering table by:</span>
+      <span style="font-size:13px;color:#555;font-weight:600;">Filtering by:</span>
       <div class="filter-chip">${filterLabels[activeQuickFilter]}
         <span class="remove" onclick="clearQuickFilter()">✕</span>
       </div>
-      <span class="result-count">${tableRows.length} record${tableRows.length !== 1 ? "s" : ""} shown</span>
-    </div>` : ""}
+      <span class="result-count">${tableRows.length} record${tableRows.length!==1?"s":""}</span>
+    </div>`:""}
 
     <!-- KPI CARDS -->
     <div class="kpi-grid">
@@ -480,15 +468,15 @@ function renderDashboard(month, team, program) {
     <div class="two-col">
       <div class="card">
         <div class="section-title">📧 Email Funnel</div>
-        ${funnelRow("Sent", totalSent, totalSent, "#1976d2")}
-        ${funnelRow("Delivered", totalDelivered, totalSent, "#43a047")}
-        ${funnelRow("Opens", totalOpens, totalSent, "#00acc1")}
-        ${funnelRow("Clicks", totalClicks, totalSent, "#fb8c00")}
-        ${funnelRow("Replies", totalReplies, totalSent, "#8e24aa")}
+        ${funnelBar("Sent",      totalSent,      totalSent, "#1976d2")}
+        ${funnelBar("Delivered", totalDelivered, totalSent, "#43a047")}
+        ${funnelBar("Opens",     totalOpens,     totalSent, "#00acc1")}
+        ${funnelBar("Clicks",    totalClicks,    totalSent, "#fb8c00")}
+        ${funnelBar("Replies",   totalReplies,   totalSent, "#8e24aa")}
       </div>
       <div class="card">
         <div class="section-title">🎯 Lead Qualification
-          <span style="font-size:10px;color:#aaa;font-weight:400;">Click to filter ↓</span>
+          <span style="font-size:10px;color:#aaa;font-weight:400;">Click to filter table ↓</span>
         </div>
         <div class="clickable-grid">
           <div class="click-pill hot ${activeQuickFilter==="hot"?"active-pill":""}" onclick="setQuickFilter('hot')">
@@ -541,10 +529,10 @@ function renderDashboard(month, team, program) {
     <div class="card" style="margin-bottom:28px;">
       <div class="section-title">📈 Monthly Email Volume</div>
       <div class="bar-chart">
-        ${monthlyData.map(d => `
+        ${monthlyData.map(d=>`
           <div class="bar-col">
-            <div class="bar-val">${d.sent > 0 ? d.sent.toLocaleString() : "—"}</div>
-            <div class="bar" style="height:${d.sent > 0 ? Math.max((d.sent/maxSent)*100,6) : 4}px;
+            <div class="bar-val">${d.sent>0?d.sent.toLocaleString():"—"}</div>
+            <div class="bar" style="height:${d.sent>0?Math.max((d.sent/maxSent)*100,6):4}px;
               background:linear-gradient(180deg,#1976d2,#42a5f5);"></div>
             <div class="bar-month">${d.month.replace("-25","").replace("-26","")}</div>
           </div>`).join("")}
@@ -556,12 +544,12 @@ function renderDashboard(month, team, program) {
       <div class="section-title">
         📋 All Meetings & Prospects
         <span style="font-size:11px;color:#999;font-weight:400;margin-left:4px;">
-          ${activeQuickFilter ? tableRows.length + " filtered" : meetRows.length + " total"} records
+          ${activeQuickFilter?tableRows.length+" filtered":meetRows.length+" total"} records
         </span>
       </div>
       <div class="table-controls">
-        <input class="search-box" id="searchBox" placeholder="🔍 Search company, name, program, notes..." oninput="liveSearch()" />
-        ${activeQuickFilter ? `<button class="clear-filter-btn" onclick="clearQuickFilter()">✕ Clear Filter</button>` : ""}
+        <input class="search-box" id="searchBox" placeholder="🔍 Search company, name, program..." oninput="liveSearch()"/>
+        ${activeQuickFilter?`<button class="clear-filter-btn" onclick="clearQuickFilter()">✕ Clear Filter</button>`:""}
         <span class="result-count" id="resultCount"></span>
       </div>
       <div class="table-wrap">
@@ -570,7 +558,7 @@ function renderDashboard(month, team, program) {
             <tr>
               <th>#</th><th>Date</th><th>Month</th><th>Program</th>
               <th>Company / Startup</th><th>Contact</th><th>Type</th>
-              <th>Status</th><th>Qualification</th><th>Next Action</th><th>Notes</th>
+              <th>Status</th><th>Qualification</th><th>Next Action</th>
             </tr>
           </thead>
           <tbody id="meetingsBody">${renderTableRows(tableRows)}</tbody>
@@ -590,7 +578,7 @@ function liveSearch() {
     if (show) count++;
   });
   const rc = document.getElementById("resultCount");
-  if (rc) rc.textContent = q ? count + " result" + (count !== 1 ? "s" : "") : "";
+  if (rc) rc.textContent = q ? count + " result" + (count!==1?"s":"") : "";
 }
 
 loadData();

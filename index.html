@@ -211,7 +211,7 @@
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxpCbnFJfJUQncSsJf3MhmKbqC2y6yN5OS2-T9qvcfQRwtsgDzd-LluvE8it_TYMpnI/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGLnpM0K0THdH6UAgNVZ2YGrqegHK8IrI-BMHY0y59fSv7u_tbgW3qajH2qk-_Htnv/exec";
 
 let allData = {};
 let activeQuickFilter = null;
@@ -333,7 +333,7 @@ function tbadge(t) {
 }
 
 // ── QUALIFICATION HELPERS — reads "Qullification" OR "Qualification" ──
-const getQual = r => g(r,"Qullification","Qualification","qualification","Lead Status","Current Status");
+const getQual = r => g(r,"Qullification","Qualification","qualification","Lead Status");
 const getMode = r => g(r,"Mode","Meeting_Type","Meeting Type","MeetingType","Type","type","mode");
 const getStatus = r => g(r,"Current Status","Status","status","Meeting Stage");
 const getNext = r => g(r,"Next_Action","Next Action","NextAction","Next Step","next_step","Meeting Stage");
@@ -420,7 +420,7 @@ function renderDashboard(month, team, program) {
         <td>${tbadge(getMode(r))}</td>
         <td>${sbadge(getStatus(r))}</td>
         <td>${qbadge(getQual(r))}</td>
-        <td style="font-size:12px">${getNext(r)||"—"}</td>
+<td style="font-size:12px">${g(r,"Current Status","Meeting Stage","Next_Action","Next Action","status")||"—"}</td>
       </tr>`).join("");
 
   document.getElementById("mainContent").innerHTML = `

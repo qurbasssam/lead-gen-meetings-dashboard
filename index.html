@@ -214,8 +214,9 @@ async function loadData() {
   document.getElementById("mainContent").innerHTML =
     '<div class="loading"><span class="spinner"></span>Fetching live data from Google Sheets...</div>';
 
-  try {
-    const res = await fetch(WEB_APP_URL);
+ try {
+    const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(WEB_APP_URL);
+    const res = await fetch(proxyUrl);
     if (!res.ok) throw new Error("HTTP " + res.status);
     allData = await res.json();
     document.getElementById("lastUpdated").textContent =

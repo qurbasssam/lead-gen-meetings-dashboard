@@ -195,13 +195,13 @@
   <label>📁 Program</label>
   <select id="filterProgram" onchange="applyFilters()">
   <option value="All">All Programs</option>
-  <option value="Corporte innovation Meetings">CI Meetings</option>
-  <option value="Delivery XDC Sealth AI Outreach">XDC / Shealth.ai</option>
-  <option value="Delivery Kotak Outreach">Kotak Outreach</option>
-  <option value="Delivery Kotak Roadshow">Kotak Roadshow</option>
-  <option value="Delivery Youth Co Lab">Youth Co Lab</option>
-  <option value="Delivery Honda Outreach">Honda Outreach</option>
-  <option value="Funding Telangana Founders Day">Telangana Founders</option>
+  <option value="CI">CI (Corporate Innovation)</option>
+  <option value="XDC">XDC / Shealth.ai</option>
+  <option value="Kotak">Kotak Outreach</option>
+  <option value="KotakRoadshow">Kotak Roadshow</option>
+  <option value="YouthCoLab">Youth Co-Lab</option>
+  <option value="Honda">Honda Outreach</option>
+  <option value="Funding">Telangana Founders</option>
 </select>
   <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
 </div>
@@ -243,8 +243,8 @@ async function loadData() {
     const keys = Object.keys(allData);
 
     // ✅ AUTO-DETECT sheet names
-    sheetM = keys.find(k => /corporte|corporate|ci meeting|innovation meeting/i.test(k)) || keys[0] || "";
-sheetE = keys.find(k => /email.*stat|ci.*email|email.*perf|email.*ci/i.test(k)) || keys[keys.length-1] || keys[0] || "";
+    sheetM = keys.find(k => /meetings_data/i.test(k)) || keys.find(k => /meet/i.test(k)) || keys[0] || "";
+sheetE = keys.find(k => /email_stats/i.test(k)) || keys.find(k => /email/i.test(k)) || keys[1] || keys[0] || "";
 
 
     document.getElementById("lastUpdated").textContent =

@@ -38,7 +38,6 @@
 
   .container { padding: 28px 40px; }
 
-  /* Active filter chip */
   .active-filter-bar {
     display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; align-items: center;
   }
@@ -49,7 +48,6 @@
   }
   .filter-chip .remove { cursor: pointer; font-weight: 700; color: #e53935; }
 
-  /* KPI Cards */
   .kpi-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 14px; margin-bottom: 28px;
@@ -65,7 +63,6 @@
   .kpi-card .label { font-size: 11px; color: #888; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
   .kpi-card .sublabel { font-size: 10px; color: #43a047; margin-top: 3px; }
 
-  /* Section titles */
   .section-title {
     font-size: 15px; font-weight: 700; color: #1565c0;
     margin-bottom: 14px; padding-bottom: 7px;
@@ -73,7 +70,6 @@
     display: flex; align-items: center; gap: 8px;
   }
 
-  /* Two-col layout */
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 28px; }
   @media(max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
 
@@ -83,7 +79,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
 
-  /* Funnel */
   .funnel-row { display: flex; align-items: center; margin-bottom: 11px; gap: 10px; }
   .funnel-label { width: 120px; font-size: 13px; color: #555; }
   .funnel-bar-wrap { flex: 1; background: #f0f4ff; border-radius: 4px; height: 26px; overflow: hidden; }
@@ -94,7 +89,6 @@
   }
   .funnel-value { width: 55px; text-align: right; font-weight: 700; color: #1976d2; font-size: 13px; }
 
-  /* Clickable qual/type pills */
   .clickable-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .click-pill {
     border-radius: 10px; padding: 16px; text-align: center;
@@ -102,7 +96,7 @@
     transition: transform 0.15s, box-shadow 0.15s;
   }
   .click-pill:hover { transform: scale(1.04); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
-  .click-pill.active-pill { border-width: 2.5px !important; box-shadow: 0 0 0 3px rgba(21,101,192,0.15); }
+  .click-pill.active-pill { border-width: 2.5px !important; box-shadow: 0 0 0 3px rgba(21,101,192,0.2); transform: scale(1.04); }
 
   .click-pill.hot { background: #fff5f5; border-color: #ef5350; }
   .click-pill.warm { background: #fff8f0; border-color: #ffa726; }
@@ -121,12 +115,11 @@
   .click-pill .qlabel { font-size: 11px; color: #888; margin-top: 4px; }
   .click-pill .click-hint { font-size: 10px; color: #aaa; margin-top: 3px; }
 
-  /* Table */
   .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .data-table th {
     background: #e8f0fe; color: #1565c0; padding: 10px 12px;
     text-align: left; font-weight: 700; font-size: 11px; text-transform: uppercase;
-    border-bottom: 2px solid #90caf9;
+    border-bottom: 2px solid #90caf9; position: sticky; top: 0; z-index: 1;
   }
   .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f4ff; color: #333; }
   .data-table tr:hover td { background: #f0f7ff; }
@@ -140,14 +133,12 @@
   .badge.virtual { background: #f3e5f5; color: #8e24aa; border: 1px solid #ce93d8; }
   .badge.inperson { background: #e8f5e9; color: #43a047; border: 1px solid #a5d6a7; }
 
-  /* Bar chart */
-  .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 120px; padding: 0 10px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 130px; padding: 0 10px; }
   .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.8s ease; min-height: 4px; }
   .bar-month { font-size: 11px; color: #888; }
   .bar-val { font-size: 10px; color: #1976d2; font-weight: 600; }
 
-  /* Program impact */
   .program-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
   .program-card {
     background: #fff; border: 1px solid #e0e7ef; border-radius: 10px;
@@ -171,10 +162,9 @@
 
   .error-box {
     background: #fff5f5; border: 1px solid #ef9a9a;
-    border-radius: 8px; padding: 20px; color: #c62828; text-align: center;
+    border-radius: 8px; padding: 24px; color: #c62828; line-height: 1.7;
   }
 
-  /* Search */
   .table-controls {
     display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; align-items: center;
   }
@@ -191,6 +181,7 @@
     font-weight: 600; cursor: pointer;
   }
   .clear-filter-btn:hover { background: #ffebee; }
+  .table-wrap { overflow-x: auto; max-height: 480px; overflow-y: auto; border-radius: 8px; border: 1px solid #e0e7ef; }
 </style>
 </head>
 <body>
@@ -198,7 +189,7 @@
 <div class="header">
   <h1>📊 T-Hub Performance Dashboard</h1>
   <p>Lead Gen Specialist · CI + Delivery · Email Channel · Oct 2025 – Mar 2026</p>
-  <div class="last-updated" id="lastUpdated">Loading data...</div>
+  <div class="last-updated" id="lastUpdated">Loading live data...</div>
 </div>
 
 <div class="filters">
@@ -229,55 +220,71 @@
     <option value="Honda Outreach">Honda Outreach</option>
     <option value="Telangana Founders">Telangana Founders</option>
   </select>
-  <button class="refresh-btn" onclick="loadData()">🔄 Refresh Live Data</button>
+  <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
 </div>
 
 <div class="container" id="mainContent">
-  <div class="loading"><span class="spinner"></span>Fetching live data from Google Sheets...</div>
+  <div class="loading"><span class="spinner"></span>Connecting to Google Sheets...</div>
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzjImNbPjdsCP5QH85UWhqEBfZRjs4JgAhS6eP4boBDL6q-LUE6bCxHYpTxmlxgPnXt/exec";
+// ✅ YOUR NEW APPS SCRIPT URL WITH JSONP SUPPORT
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxAtk-HpNjX8BehmGw63tUrkyDzHVJfloEzQicVkPEOMIOzCZNgvVDWhFN114Bqk5Os/exec";
 
 let allData = {};
-let activeQuickFilter = null; // 'hot','warm','cold','nq','virtual','inperson'
+let activeQuickFilter = null;
 
-const PROXIES = [
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  url => `https://thingproxy.freeboard.io/fetch/${url}`
-];
+// ✅ JSONP — bypasses CORS completely, no proxy needed
+function fetchWithJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = "jsonpCb_" + Date.now() + "_" + Math.floor(Math.random() * 9999);
+    const script = document.createElement("script");
 
-async function fetchWithProxy(targetUrl) {
-  for (let i = 0; i < PROXIES.length; i++) {
-    try {
-      const proxyUrl = PROXIES[i](targetUrl);
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-      if (!res.ok) continue;
-      const text = await res.text();
-      return JSON.parse(text);
-    } catch(e) {
-      console.warn("Proxy " + i + " failed:", e.message);
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Timeout: Apps Script took too long. Make sure it's deployed as 'Anyone'."));
+    }, 12000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) document.head.removeChild(script);
     }
-  }
-  throw new Error("All proxies failed. Please check Apps Script deployment settings.");
+
+    window[cbName] = function(data) {
+      cleanup();
+      resolve(data);
+    };
+
+    script.src = url + "?callback=" + cbName + "&t=" + Date.now();
+    script.onerror = function() {
+      cleanup();
+      reject(new Error("Script load failed. Check your Apps Script URL and deployment settings."));
+    };
+    document.head.appendChild(script);
+  });
 }
 
 async function loadData() {
   document.getElementById("mainContent").innerHTML =
     '<div class="loading"><span class="spinner"></span>Fetching live data from Google Sheets...</div>';
   try {
-    allData = await fetchWithProxy(WEB_APP_URL);
+    allData = await fetchWithJsonp(WEB_APP_URL);
     document.getElementById("lastUpdated").textContent =
-      "✅ Last updated: " + new Date().toLocaleString();
+      "✅ Live data loaded · " + new Date().toLocaleString();
     activeQuickFilter = null;
     applyFilters();
   } catch(err) {
-    document.getElementById("mainContent").innerHTML =
-      `<div class="error-box">
-        ❌ Could not fetch data.<br><br>
-        <strong>Error:</strong> ${err.message}<br><br>
-        <strong>Fix:</strong> Re-deploy your Apps Script as <strong>"Anyone"</strong> access and try again.
+    document.getElementById("mainContent").innerHTML = `
+      <div class="error-box">
+        <strong>❌ Could not load data</strong><br><br>
+        <b>Error:</b> ${err.message}<br><br>
+        <b>Fix checklist:</b><br>
+        1. Go to Apps Script → Deploy → Manage Deployments<br>
+        2. Edit your deployment → set <b>"Who has access" = Anyone</b><br>
+        3. Click <b>New Version</b> → Deploy<br>
+        4. Make sure your Apps Script has the <b>JSONP callback support</b> code<br>
+        5. Come back and click 🔄 Refresh
       </div>`;
   }
 }
@@ -290,7 +297,7 @@ function applyFilters() {
 }
 
 function setQuickFilter(type) {
-  activeQuickFilter = activeQuickFilter === type ? null : type;
+  activeQuickFilter = (activeQuickFilter === type) ? null : type;
   applyFilters();
 }
 
@@ -299,17 +306,26 @@ function clearQuickFilter() {
   applyFilters();
 }
 
+function getVal(row, ...keys) {
+  for (const k of keys) {
+    if (row[k] !== undefined && row[k] !== "") return String(row[k]).trim();
+  }
+  return "";
+}
+
 function filterRows(sheetName, month, team, program) {
   const rows = allData[sheetName] || [];
   return rows.filter(r => {
-    const mMatch = month === "All" || r["Month"] === month || r["month"] === month;
-    const tMatch = team === "All" || r["Team"] === team || r["team"] === team;
-    const pMatch = program === "All" || r["Program"] === program || r["program"] === program;
-    return mMatch && tMatch && pMatch;
+    const m = getVal(r, "Month", "month");
+    const t = getVal(r, "Team", "team");
+    const p = getVal(r, "Program", "program");
+    return (month === "All" || m === month) &&
+           (team === "All" || t === team) &&
+           (program === "All" || p === program);
   });
 }
 
-function num(v) { return isNaN(v) || v === "" ? 0 : Number(v); }
+function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
 function funnelRow(label, value, total, color) {
   const pct = total > 0 ? Math.max((value / total) * 100, 2) : 2;
@@ -327,124 +343,140 @@ function qualBadge(q) {
   if (l === "hot") return `<span class="badge hot">🔥 Hot</span>`;
   if (l === "warm") return `<span class="badge warm">🟠 Warm</span>`;
   if (l === "cold") return `<span class="badge cold">🔵 Cold</span>`;
-  return `<span class="badge nq">⚪ NQ</span>`;
+  if (l) return `<span class="badge nq">⚪ ${q}</span>`;
+  return `<span style="color:#ccc;">—</span>`;
 }
 
 function statusBadge(s) {
   const l = (s || "").toLowerCase();
   if (l === "done" || l === "completed") return `<span class="badge done">✅ Done</span>`;
-  return `<span class="badge progress">⏳ ${s || "In Progress"}</span>`;
+  if (l) return `<span class="badge progress">⏳ ${s}</span>`;
+  return `<span style="color:#ccc;">—</span>`;
 }
 
 function typeBadge(t) {
   const l = (t || "").toLowerCase();
   if (l === "virtual") return `<span class="badge virtual">💻 Virtual</span>`;
   if (l === "in-person" || l === "inperson") return `<span class="badge inperson">🏢 In-Person</span>`;
-  return `<span class="badge nq">${t || "-"}</span>`;
+  if (l) return `<span class="badge nq">${t}</span>`;
+  return `<span style="color:#ccc;">—</span>`;
+}
+
+function renderTableRows(rows) {
+  if (!rows.length) {
+    return `<tr><td colspan="11" style="text-align:center;color:#bbb;padding:40px;font-style:italic;">
+      No meetings found for the selected filters</td></tr>`;
+  }
+  return rows.map((r, i) => `<tr>
+    <td style="color:#bbb;font-size:11px;">${i + 1}</td>
+    <td>${getVal(r,"Date","date") || "—"}</td>
+    <td>${getVal(r,"Month","month") || "—"}</td>
+    <td>${getVal(r,"Program","program") || "—"}</td>
+    <td style="font-weight:600;color:#1565c0;">${getVal(r,"Company","Startup","startup","company","Name","name") || "—"}</td>
+    <td>${getVal(r,"Contact","Contact Person","contact","Person","person") || "—"}</td>
+    <td>${typeBadge(getVal(r,"Meeting_Type","Meeting Type","meeting_type","Type","type"))}</td>
+    <td>${statusBadge(getVal(r,"Status","status"))}</td>
+    <td>${qualBadge(getVal(r,"Qualification","qualification"))}</td>
+    <td style="font-size:12px;">${getVal(r,"Next_Action","Next Action","next_action","NextAction") || "—"}</td>
+    <td style="font-size:11px;color:#777;max-width:160px;white-space:normal;">${getVal(r,"Notes","notes","Remarks","remarks") || "—"}</td>
+  </tr>`).join("");
 }
 
 function renderDashboard(month, team, program) {
   const sheetNames = Object.keys(allData);
+  if (!sheetNames.length) {
+    document.getElementById("mainContent").innerHTML =
+      `<div class="error-box">⚠️ No sheets found in response. Check your Apps Script code.</div>`;
+    return;
+  }
+
+  const meetSheet = sheetNames.find(s => s.toLowerCase().includes("meet")) || sheetNames[0];
   const emailSheet = sheetNames.find(s =>
-    s.toLowerCase().includes("email") || s.toLowerCase().includes("master")) || sheetNames[1] || "";
-  const meetSheet = sheetNames.find(s =>
-    s.toLowerCase().includes("meeting")) || sheetNames[0] || "";
+    s.toLowerCase().includes("email") || s.toLowerCase().includes("master") || s.toLowerCase().includes("perf")
+  ) || sheetNames[1] || sheetNames[0];
 
   const emailRows = filterRows(emailSheet, month, team, program);
-  let meetRows = filterRows(meetSheet, month, team, program);
+  const meetRows  = filterRows(meetSheet, month, team, program);
 
-  // === EMAIL METRICS ===
-  const totalSent = emailRows.reduce((s,r) => s + num(r["Sent"]||r["sent"]), 0);
-  const totalDelivered = emailRows.reduce((s,r) => s + num(r["Delivered"]||r["delivered"]), 0);
-  const totalOpens = emailRows.reduce((s,r) => s + num(r["Unique Opens"]||r["Opens"]||r["opens"]), 0);
-  const totalClicks = emailRows.reduce((s,r) => s + num(r["Unique Clicks"]||r["Clicks"]||r["clicks"]), 0);
-  const totalReplies = emailRows.reduce((s,r) => s + num(r["Unique Replies"]||r["Replies"]||r["replies"]), 0);
-  const totalBounces = emailRows.reduce((s,r) => s + num(r["Bounces"]||r["bounces"]), 0);
-  const openRate = totalSent > 0 ? ((totalOpens/totalSent)*100).toFixed(1) : 0;
-  const clickRate = totalSent > 0 ? ((totalClicks/totalSent)*100).toFixed(1) : 0;
-  const replyRate = totalSent > 0 ? ((totalReplies/totalSent)*100).toFixed(1) : 0;
+  // Email metrics
+  const totalSent      = emailRows.reduce((s,r) => s + num(getVal(r,"Sent","sent")), 0);
+  const totalDelivered = emailRows.reduce((s,r) => s + num(getVal(r,"Delivered","delivered")), 0);
+  const totalOpens     = emailRows.reduce((s,r) => s + num(getVal(r,"Unique Opens","Opens","opens")), 0);
+  const totalClicks    = emailRows.reduce((s,r) => s + num(getVal(r,"Unique Clicks","Clicks","clicks")), 0);
+  const totalReplies   = emailRows.reduce((s,r) => s + num(getVal(r,"Unique Replies","Replies","replies")), 0);
+  const totalBounces   = emailRows.reduce((s,r) => s + num(getVal(r,"Bounces","bounces")), 0);
+  const openRate  = totalSent > 0 ? ((totalOpens/totalSent)*100).toFixed(1) : "0.0";
+  const clickRate = totalSent > 0 ? ((totalClicks/totalSent)*100).toFixed(1) : "0.0";
+  const replyRate = totalSent > 0 ? ((totalReplies/totalSent)*100).toFixed(1) : "0.0";
 
-  // === MEETINGS METRICS ===
-  const totalMeetings = meetRows.length;
-  const virtual = meetRows.filter(r => (r["Meeting_Type"]||r["Meeting Type"]||"").toLowerCase() === "virtual").length;
-  const inperson = meetRows.filter(r => {
-    const t = (r["Meeting_Type"]||r["Meeting Type"]||"").toLowerCase();
-    return t === "in-person" || t === "inperson";
+  // Meetings metrics
+  const hot     = meetRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "hot").length;
+  const warm    = meetRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "warm").length;
+  const cold    = meetRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "cold").length;
+  const nq      = meetRows.filter(r => {
+    const q = getVal(r,"Qualification","qualification").toLowerCase();
+    return q === "not qualified" || q === "nq";
   }).length;
-  const hot = meetRows.filter(r => (r["Qualification"]||"").toLowerCase() === "hot").length;
-  const warm = meetRows.filter(r => (r["Qualification"]||"").toLowerCase() === "warm").length;
-  const cold = meetRows.filter(r => (r["Qualification"]||"").toLowerCase() === "cold").length;
-  const nq = meetRows.filter(r => (r["Qualification"]||"").toLowerCase() === "not qualified").length;
-  const proposals = meetRows.filter(r => (r["Next_Action"]||r["Next Action"]||"").includes("Proposal")).length;
-  const followups = meetRows.filter(r => (r["Next_Action"]||r["Next Action"]||"").includes("Follow")).length;
+  const virtual  = meetRows.filter(r => getVal(r,"Meeting_Type","Meeting Type","meeting_type").toLowerCase() === "virtual").length;
+  const inperson = meetRows.filter(r => {
+    const t = getVal(r,"Meeting_Type","Meeting Type","meeting_type").toLowerCase();
+    return t === "in-person" || t === "inperson" || t === "in person";
+  }).length;
+  const proposals = meetRows.filter(r => getVal(r,"Next_Action","Next Action","next_action").toLowerCase().includes("proposal")).length;
+  const followups  = meetRows.filter(r => getVal(r,"Next_Action","Next Action","next_action").toLowerCase().includes("follow")).length;
 
-  // === APPLY QUICK FILTER TO TABLE ===
+  // Table: apply quick filter
   let tableRows = [...meetRows];
-  if (activeQuickFilter === "hot") tableRows = tableRows.filter(r => (r["Qualification"]||"").toLowerCase() === "hot");
-  else if (activeQuickFilter === "warm") tableRows = tableRows.filter(r => (r["Qualification"]||"").toLowerCase() === "warm");
-  else if (activeQuickFilter === "cold") tableRows = tableRows.filter(r => (r["Qualification"]||"").toLowerCase() === "cold");
-  else if (activeQuickFilter === "nq") tableRows = tableRows.filter(r => (r["Qualification"]||"").toLowerCase() === "not qualified");
-  else if (activeQuickFilter === "virtual") tableRows = tableRows.filter(r => (r["Meeting_Type"]||r["Meeting Type"]||"").toLowerCase() === "virtual");
+  if (activeQuickFilter === "hot")      tableRows = tableRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "hot");
+  else if (activeQuickFilter === "warm") tableRows = tableRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "warm");
+  else if (activeQuickFilter === "cold") tableRows = tableRows.filter(r => getVal(r,"Qualification","qualification").toLowerCase() === "cold");
+  else if (activeQuickFilter === "nq")   tableRows = tableRows.filter(r => {
+    const q = getVal(r,"Qualification","qualification").toLowerCase();
+    return q === "not qualified" || q === "nq";
+  });
+  else if (activeQuickFilter === "virtual")  tableRows = tableRows.filter(r => getVal(r,"Meeting_Type","Meeting Type","meeting_type").toLowerCase() === "virtual");
   else if (activeQuickFilter === "inperson") tableRows = tableRows.filter(r => {
-    const t = (r["Meeting_Type"]||r["Meeting Type"]||"").toLowerCase();
-    return t === "in-person" || t === "inperson";
+    const t = getVal(r,"Meeting_Type","Meeting Type","meeting_type").toLowerCase();
+    return t === "in-person" || t === "inperson" || t === "in person";
   });
 
   // Monthly trend
   const months = ["Oct-25","Nov-25","Dec-25","Jan-26","Feb-26","Mar-26"];
-  const allEmailRows = allData[emailSheet] || [];
-  const monthlyData = months.map(m => {
-    const mRows = allEmailRows.filter(r => (r["Month"]||r["month"]) === m &&
-      (team === "All" || (r["Team"]||r["team"]) === team));
-    return { month: m, sent: mRows.reduce((s,r) => s + num(r["Sent"]||r["sent"]), 0) };
-  });
+  const allEmail = allData[emailSheet] || [];
+  const monthlyData = months.map(m => ({
+    month: m,
+    sent: allEmail.filter(r => getVal(r,"Month","month") === m && (team === "All" || getVal(r,"Team","team") === team))
+                  .reduce((s,r) => s + num(getVal(r,"Sent","sent")), 0)
+  }));
   const maxSent = Math.max(...monthlyData.map(d => d.sent), 1);
 
-  // Program stats
-  const programStats = [
-    { name: "CI Outreach", team: "CI", metric: "Replies", value: (allData[emailSheet]||[]).filter(r=>(r["Program"]||r["program"])==="CI Outreach").reduce((s,r)=>s+num(r["Unique Replies"]||r["Replies"]||0),0) },
-    { name: "Kotak Outreach", team: "Delivery", metric: "Registrations", value: 750 },
-    { name: "XDC / Shealth.ai", team: "Delivery", metric: "Meetings", value: (allData[meetSheet]||[]).filter(r=>(r["Program"]||r["program"])==="XDC / Shealth.ai").length },
-    { name: "Honda Outreach", team: "Delivery", metric: "Clicks", value: (allData[emailSheet]||[]).filter(r=>(r["Program"]||r["program"])==="Honda Outreach").reduce((s,r)=>s+num(r["Unique Clicks"]||r["Clicks"]||0),0) },
-    { name: "Youth Co-Lab", team: "Delivery", metric: "Clicks", value: (allData[emailSheet]||[]).filter(r=>(r["Program"]||r["program"])==="Youth Co-Lab").reduce((s,r)=>s+num(r["Unique Clicks"]||r["Clicks"]||0),0) },
-    { name: "Telangana Founders", team: "Funding", metric: "Leads", value: (allData[meetSheet]||[]).filter(r=>(r["Program"]||r["program"])==="Telangana Founders").length },
-  ];
-
-  const quickFilterLabel = {
-    hot: "🔥 Hot Leads",
-    warm: "🟠 Warm Leads",
-    cold: "🔵 Cold Leads",
-    nq: "⚪ Not Qualified",
-    virtual: "💻 Virtual Meetings",
-    inperson: "🏢 In-Person Meetings"
-  };
+  const filterLabels = { hot:"🔥 Hot Leads", warm:"🟠 Warm Leads", cold:"🔵 Cold Leads",
+    nq:"⚪ Not Qualified", virtual:"💻 Virtual Meetings", inperson:"🏢 In-Person Meetings" };
 
   document.getElementById("mainContent").innerHTML = `
 
-    <!-- Active Quick Filter Banner -->
     ${activeQuickFilter ? `
     <div class="active-filter-bar">
       <span style="font-size:13px;color:#555;font-weight:600;">Filtering table by:</span>
-      <div class="filter-chip">
-        ${quickFilterLabel[activeQuickFilter]}
+      <div class="filter-chip">${filterLabels[activeQuickFilter]}
         <span class="remove" onclick="clearQuickFilter()">✕</span>
       </div>
-      <span class="result-count">${tableRows.length} records shown</span>
-    </div>` : ''}
+      <span class="result-count">${tableRows.length} record${tableRows.length !== 1 ? "s" : ""} shown</span>
+    </div>` : ""}
 
-    <!-- KPI ROW -->
+    <!-- KPI CARDS -->
     <div class="kpi-grid">
       <div class="kpi-card"><div class="value">${totalSent.toLocaleString()}</div><div class="label">📤 Emails Sent</div></div>
-      <div class="kpi-card"><div class="value">${openRate}%</div><div class="label">👁️ Open Rate</div><div class="sublabel">↑ Above Industry Avg</div></div>
+      <div class="kpi-card"><div class="value">${openRate}%</div><div class="label">👁️ Open Rate</div></div>
       <div class="kpi-card"><div class="value">${clickRate}%</div><div class="label">🖱️ Click Rate</div></div>
       <div class="kpi-card"><div class="value">${replyRate}%</div><div class="label">💬 Reply Rate</div></div>
-      <div class="kpi-card"><div class="value">${totalMeetings}</div><div class="label">🤝 Total Meetings</div></div>
-      <div class="kpi-card"><div class="value">${hot}</div><div class="label">🔥 Hot Leads</div><div class="sublabel">Ready for Proposal</div></div>
-      <div class="kpi-card"><div class="value">${proposals}</div><div class="label">📄 Proposals Sent</div></div>
+      <div class="kpi-card"><div class="value">${meetRows.length}</div><div class="label">🤝 Total Meetings</div></div>
+      <div class="kpi-card"><div class="value">${hot}</div><div class="label">🔥 Hot Leads</div><div class="sublabel">Ready to Close</div></div>
+      <div class="kpi-card"><div class="value">${proposals}</div><div class="label">📄 Proposals</div></div>
       <div class="kpi-card"><div class="value">${totalBounces.toLocaleString()}</div><div class="label">⛔ Bounces</div></div>
     </div>
 
-    <!-- EMAIL FUNNEL + QUALIFICATION -->
+    <!-- FUNNEL + QUALIFICATION -->
     <div class="two-col">
       <div class="card">
         <div class="section-title">📧 Email Funnel</div>
@@ -454,25 +486,22 @@ function renderDashboard(month, team, program) {
         ${funnelRow("Clicks", totalClicks, totalSent, "#fb8c00")}
         ${funnelRow("Replies", totalReplies, totalSent, "#8e24aa")}
       </div>
-
       <div class="card">
-        <div class="section-title">🎯 Lead Qualification <span style="font-size:11px;color:#999;font-weight:400;margin-left:6px;">Click a card to filter table ↓</span></div>
+        <div class="section-title">🎯 Lead Qualification
+          <span style="font-size:10px;color:#aaa;font-weight:400;">Click to filter ↓</span>
+        </div>
         <div class="clickable-grid">
-          <div class="click-pill hot ${activeQuickFilter==='hot'?'active-pill':''}" onclick="setQuickFilter('hot')">
-            <div class="num">${hot}</div><div class="qlabel">🔥 Hot</div>
-            <div class="click-hint">Click to filter</div>
+          <div class="click-pill hot ${activeQuickFilter==="hot"?"active-pill":""}" onclick="setQuickFilter('hot')">
+            <div class="num">${hot}</div><div class="qlabel">🔥 Hot</div><div class="click-hint">tap to filter</div>
           </div>
-          <div class="click-pill warm ${activeQuickFilter==='warm'?'active-pill':''}" onclick="setQuickFilter('warm')">
-            <div class="num">${warm}</div><div class="qlabel">🟠 Warm</div>
-            <div class="click-hint">Click to filter</div>
+          <div class="click-pill warm ${activeQuickFilter==="warm"?"active-pill":""}" onclick="setQuickFilter('warm')">
+            <div class="num">${warm}</div><div class="qlabel">🟠 Warm</div><div class="click-hint">tap to filter</div>
           </div>
-          <div class="click-pill cold ${activeQuickFilter==='cold'?'active-pill':''}" onclick="setQuickFilter('cold')">
-            <div class="num">${cold}</div><div class="qlabel">🔵 Cold</div>
-            <div class="click-hint">Click to filter</div>
+          <div class="click-pill cold ${activeQuickFilter==="cold"?"active-pill":""}" onclick="setQuickFilter('cold')">
+            <div class="num">${cold}</div><div class="qlabel">🔵 Cold</div><div class="click-hint">tap to filter</div>
           </div>
-          <div class="click-pill nq ${activeQuickFilter==='nq'?'active-pill':''}" onclick="setQuickFilter('nq')">
-            <div class="num">${nq}</div><div class="qlabel">⚪ Not Qualified</div>
-            <div class="click-hint">Click to filter</div>
+          <div class="click-pill nq ${activeQuickFilter==="nq"?"active-pill":""}" onclick="setQuickFilter('nq')">
+            <div class="num">${nq}</div><div class="qlabel">⚪ Not Qualified</div><div class="click-hint">tap to filter</div>
           </div>
         </div>
       </div>
@@ -481,29 +510,28 @@ function renderDashboard(month, team, program) {
     <!-- MEETING TYPE + NEXT ACTIONS -->
     <div class="two-col">
       <div class="card">
-        <div class="section-title">💻 Meeting Type <span style="font-size:11px;color:#999;font-weight:400;margin-left:6px;">Click to filter table ↓</span></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="click-pill virtual ${activeQuickFilter==='virtual'?'active-pill':''}" onclick="setQuickFilter('virtual')">
-            <div class="num">${virtual}</div><div class="qlabel">💻 Virtual</div>
-            <div class="click-hint">Click to filter</div>
+        <div class="section-title">💻 Meeting Type
+          <span style="font-size:10px;color:#aaa;font-weight:400;">Click to filter ↓</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="click-pill virtual ${activeQuickFilter==="virtual"?"active-pill":""}" onclick="setQuickFilter('virtual')">
+            <div class="num">${virtual}</div><div class="qlabel">💻 Virtual</div><div class="click-hint">tap to filter</div>
           </div>
-          <div class="click-pill inperson ${activeQuickFilter==='inperson'?'active-pill':''}" onclick="setQuickFilter('inperson')">
-            <div class="num">${inperson}</div><div class="qlabel">🏢 In-Person</div>
-            <div class="click-hint">Click to filter</div>
+          <div class="click-pill inperson ${activeQuickFilter==="inperson"?"active-pill":""}" onclick="setQuickFilter('inperson')">
+            <div class="num">${inperson}</div><div class="qlabel">🏢 In-Person</div><div class="click-hint">tap to filter</div>
           </div>
         </div>
       </div>
-
       <div class="card">
-        <div class="section-title">⚡ Next Actions</div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:14px 22px;text-align:center;">
-            <div style="font-size:24px;font-weight:700;color:#43a047;">${proposals}</div>
-            <div style="font-size:11px;color:#888;">📄 Proposals Sent</div>
+        <div class="section-title">⚡ Next Actions Pipeline</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;">
+          <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:16px 28px;text-align:center;">
+            <div style="font-size:28px;font-weight:700;color:#43a047;">${proposals}</div>
+            <div style="font-size:11px;color:#888;margin-top:4px;">📄 Proposals</div>
           </div>
-          <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:14px 22px;text-align:center;">
-            <div style="font-size:24px;font-weight:700;color:#f9a825;">${followups}</div>
-            <div style="font-size:11px;color:#888;">🔄 Follow-ups</div>
+          <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:16px 28px;text-align:center;">
+            <div style="font-size:28px;font-weight:700;color:#f9a825;">${followups}</div>
+            <div style="font-size:11px;color:#888;margin-top:4px;">🔄 Follow-ups</div>
           </div>
         </div>
       </div>
@@ -511,107 +539,58 @@ function renderDashboard(month, team, program) {
 
     <!-- MONTHLY TREND -->
     <div class="card" style="margin-bottom:28px;">
-      <div class="section-title">📈 Monthly Email Volume Trend</div>
+      <div class="section-title">📈 Monthly Email Volume</div>
       <div class="bar-chart">
         ${monthlyData.map(d => `
           <div class="bar-col">
-            <div class="bar-val">${d.sent > 0 ? d.sent.toLocaleString() : '-'}</div>
-            <div class="bar" style="height:${d.sent > 0 ? Math.max((d.sent/maxSent)*90,8) : 4}px;background:linear-gradient(180deg,#1976d2,#42a5f5);"></div>
+            <div class="bar-val">${d.sent > 0 ? d.sent.toLocaleString() : "—"}</div>
+            <div class="bar" style="height:${d.sent > 0 ? Math.max((d.sent/maxSent)*100,6) : 4}px;
+              background:linear-gradient(180deg,#1976d2,#42a5f5);"></div>
             <div class="bar-month">${d.month.replace("-25","").replace("-26","")}</div>
           </div>`).join("")}
       </div>
     </div>
 
-    <!-- PROGRAM IMPACT -->
-    <div style="margin-bottom:28px;">
-      <div class="section-title">🚀 Program Impact</div>
-      <div class="program-grid">
-        ${programStats.map(p => `
-          <div class="program-card">
-            <div class="prog-name">${p.name}</div>
-            <div class="prog-team">${p.team} Team</div>
-            <div class="prog-value">${typeof p.value==='number' ? p.value.toLocaleString() : p.value}</div>
-            <div class="prog-metric">${p.metric}</div>
-          </div>`).join("")}
-      </div>
-    </div>
-
-    <!-- MEETINGS DETAIL TABLE — ALL PROSPECTS -->
+    <!-- ALL MEETINGS TABLE -->
     <div class="card">
-      <div class="section-title">📋 All Meetings & Prospects
-        <span style="font-size:11px;color:#999;font-weight:400;margin-left:6px;">
-          ${activeQuickFilter ? `Filtered: ${tableRows.length} records` : `${meetRows.length} total records`}
+      <div class="section-title">
+        📋 All Meetings & Prospects
+        <span style="font-size:11px;color:#999;font-weight:400;margin-left:4px;">
+          ${activeQuickFilter ? tableRows.length + " filtered" : meetRows.length + " total"} records
         </span>
       </div>
-
       <div class="table-controls">
-        <input class="search-box" id="searchBox" placeholder="🔍 Search by company, program, name..." oninput="searchTable()" />
-        ${activeQuickFilter ? `<button class="clear-filter-btn" onclick="clearQuickFilter()">✕ Clear Filter</button>` : ''}
+        <input class="search-box" id="searchBox" placeholder="🔍 Search company, name, program, notes..." oninput="liveSearch()" />
+        ${activeQuickFilter ? `<button class="clear-filter-btn" onclick="clearQuickFilter()">✕ Clear Filter</button>` : ""}
         <span class="result-count" id="resultCount"></span>
       </div>
-
-      <div style="overflow-x:auto;">
-        <table class="data-table" id="meetingsTable">
+      <div class="table-wrap">
+        <table class="data-table">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Date</th>
-              <th>Month</th>
-              <th>Program</th>
-              <th>Company / Startup</th>
-              <th>Contact</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Qualification</th>
-              <th>Next Action</th>
-              <th>Notes</th>
+              <th>#</th><th>Date</th><th>Month</th><th>Program</th>
+              <th>Company / Startup</th><th>Contact</th><th>Type</th>
+              <th>Status</th><th>Qualification</th><th>Next Action</th><th>Notes</th>
             </tr>
           </thead>
-          <tbody id="meetingsBody">
-            ${renderTableRows(tableRows)}
-          </tbody>
+          <tbody id="meetingsBody">${renderTableRows(tableRows)}</tbody>
         </table>
       </div>
     </div>
   `;
 }
 
-function renderTableRows(rows) {
-  if (rows.length === 0) {
-    return `<tr><td colspan="11" style="text-align:center;color:#bbb;padding:40px;font-style:italic;">No meetings found for selected filters</td></tr>`;
-  }
-  return rows.map((r, i) => {
-    const q = (r["Qualification"] || r["qualification"] || "").toLowerCase();
-    const t = (r["Meeting_Type"] || r["Meeting Type"] || r["meeting_type"] || "").toLowerCase();
-    return `<tr>
-      <td style="color:#bbb;font-size:11px;">${i + 1}</td>
-      <td>${r["Date"] || r["date"] || "-"}</td>
-      <td>${r["Month"] || r["month"] || "-"}</td>
-      <td>${r["Program"] || r["program"] || "-"}</td>
-      <td style="font-weight:600;color:#1565c0;">${r["Company"] || r["Startup"] || r["startup"] || r["Name"] || r["name"] || r["company"] || "-"}</td>
-      <td>${r["Contact"] || r["Contact Person"] || r["contact"] || r["Person"] || "-"}</td>
-      <td>${typeBadge(r["Meeting_Type"] || r["Meeting Type"] || r["meeting_type"])}</td>
-      <td>${statusBadge(r["Status"] || r["status"])}</td>
-      <td>${qualBadge(r["Qualification"] || r["qualification"])}</td>
-      <td style="font-size:12px;">${r["Next_Action"] || r["Next Action"] || r["next_action"] || "-"}</td>
-      <td style="font-size:11px;color:#888;max-width:160px;">${r["Notes"] || r["notes"] || r["Remarks"] || r["remarks"] || "-"}</td>
-    </tr>`;
-  }).join("");
-}
-
-function searchTable() {
-  const query = document.getElementById("searchBox").value.toLowerCase();
-  const tbody = document.getElementById("meetingsBody");
-  const rows = tbody.querySelectorAll("tr");
-  let visible = 0;
+function liveSearch() {
+  const q = document.getElementById("searchBox").value.toLowerCase();
+  const rows = document.querySelectorAll("#meetingsBody tr");
+  let count = 0;
   rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    const show = text.includes(query);
+    const show = row.textContent.toLowerCase().includes(q);
     row.style.display = show ? "" : "none";
-    if (show) visible++;
+    if (show) count++;
   });
   const rc = document.getElementById("resultCount");
-  if (rc) rc.textContent = query ? `${visible} results found` : "";
+  if (rc) rc.textContent = q ? count + " result" + (count !== 1 ? "s" : "") : "";
 }
 
 loadData();

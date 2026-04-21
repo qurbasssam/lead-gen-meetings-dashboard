@@ -194,15 +194,15 @@
   </select>
   <label>📁 Program</label>
   <select id="filterProgram" onchange="applyFilters()">
-  <option value="All">All Programs</option>
-  <option value="CI">CI (Corporate Innovation)</option>
-  <option value="XDC">XDC / Shealth.ai</option>
-  <option value="Kotak">Kotak Outreach</option>
-  <option value="KotakRoadshow">Kotak Roadshow</option>
-  <option value="YouthCoLab">Youth Co-Lab</option>
-  <option value="Honda">Honda Outreach</option>
-  <option value="Funding">Telangana Founders</option>
-</select>
+    <option value="All">All Programs</option>
+    <option value="CI">CI (Corporate Innovation)</option>
+    <option value="XDC">XDC / Shealth.ai</option>
+    <option value="Kotak">Kotak Outreach</option>
+    <option value="KotakRoadshow">Kotak Roadshow</option>
+    <option value="YouthCoLab">Youth Co-Lab</option>
+    <option value="Honda">Honda Outreach</option>
+    <option value="Funding">Telangana Founders</option>
+  </select>
   <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
 </div>
 
@@ -211,7 +211,6 @@
 </div>
 
 <script>
-// ✅ NEW WORKING URL
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxpCbnFJfJUQncSsJf3MhmKbqC2y6yN5OS2-T9qvcfQRwtsgDzd-LluvE8it_TYMpnI/exec";
 
 let allData = {};
@@ -225,7 +224,7 @@ function fetchJsonp(url) {
     const s  = document.createElement("script");
     const timer = setTimeout(() => {
       cleanup();
-      reject(new Error("TIMEOUT: Apps Script didn't respond in 15s. Make sure 'Who has access = Anyone' is set."));
+      reject(new Error("TIMEOUT: Apps Script didn't respond in 15s."));
     }, 15000);
     function cleanup() { clearTimeout(timer); delete window[cb]; if(s.parentNode) s.parentNode.removeChild(s); }
     window[cb] = d => { cleanup(); resolve(d); };
@@ -242,13 +241,12 @@ async function loadData() {
     allData = await fetchJsonp(WEB_APP_URL);
     const keys = Object.keys(allData);
 
-    // ✅ AUTO-DETECT sheet names
     sheetM = keys.find(k => /meetings_data/i.test(k)) || keys.find(k => /meet/i.test(k)) || keys[0] || "";
-sheetE = keys.find(k => /email_stats/i.test(k)) || keys.find(k => /email/i.test(k)) || keys[1] || keys[0] || "";
-
+    sheetE = keys.find(k => /email_stats/i.test(k)) || keys.find(k => /email/i.test(k)) || keys[1] || keys[0] || "";
 
     document.getElementById("lastUpdated").textContent =
-      "✅ Live data loaded  |  📋 " + sheetM + "  |  📧 " + sheetE +
+      "✅ Live  |  📋 " + sheetM + " (" + (allData[sheetM]||[]).length + " rows)" +
+      "  |  📧 " + sheetE + " (" + (allData[sheetE]||[]).length + " rows)" +
       "  |  " + new Date().toLocaleString();
 
     activeQuickFilter = null;
@@ -278,21 +276,27 @@ function applyFilters() {
 function setQuickFilter(t) { activeQuickFilter = activeQuickFilter === t ? null : t; applyFilters(); }
 function clearQuickFilter() { activeQuickFilter = null; applyFilters(); }
 
-// ✅ Flexible column getter — case-insensitive, tries all variants
+// ── FLEXIBLE GETTER ───────────────────────────────────────────────────
+// Tries every key name you pass, case-insensitive, ignores spaces/underscores
 function g(row, ...keys) {
   for (const k of keys) {
     if (row[k] !== undefined && String(row[k]).trim() !== "") return String(row[k]).trim();
-    const rk = Object.keys(row).find(x => x.toLowerCase().replace(/[\s_]/g,"") === k.toLowerCase().replace(/[\s_]/g,""));
+    const rk = Object.keys(row).find(x =>
+      x.toLowerCase().replace(/[\s_]/g,"") === k.toLowerCase().replace(/[\s_]/g,"")
+    );
     if (rk && String(row[rk]).trim() !== "") return String(row[rk]).trim();
   }
   return "";
 }
 
-function n(v) { const x = parseFloat(String(v).replace(/,/g,"")); return isNaN(x)?0:x; }
+function n(v) { const x = parseFloat(String(v).replace(/[,%]/g,"")); return isNaN(x)?0:x; }
 
+// ── ROW FILTER ────────────────────────────────────────────────────────
 function rows(sheet, month, team, program) {
-  return (allData[sheet]||[]).filter(r=>{
-    const m=g(r,"Month","month"), t=g(r,"Team","team"), p=g(r,"Program","program");
+  return (allData[sheet]||[]).filter(r => {
+    const m = g(r,"Month","month");
+    const t = g(r,"Team","team");
+    const p = g(r,"Program","program");
     return (month==="All"||m===month) && (team==="All"||t===team) && (program==="All"||p===program);
   });
 }
@@ -328,39 +332,52 @@ function tbadge(t) {
   return `<span style="color:#ccc">—</span>`;
 }
 
-const isHot  = r => g(r,"Qualification","qualification","Lead Status").toLowerCase()==="hot";
-const isWarm = r => g(r,"Qualification","qualification","Lead Status").toLowerCase()==="warm";
-const isCold = r => g(r,"Qualification","qualification","Lead Status").toLowerCase()==="cold";
-const isNQ   = r => { const q=g(r,"Qualification","qualification","Lead Status").toLowerCase(); return q==="nq"||q==="not qualified"; };
-const isVirt = r => g(r,"Meeting_Type","Meeting Type","MeetingType","Type","type").toLowerCase()==="virtual";
-const isIP   = r => g(r,"Meeting_Type","Meeting Type","MeetingType","Type","type").toLowerCase().includes("person");
+// ── QUALIFICATION HELPERS — reads "Qullification" OR "Qualification" ──
+const getQual = r => g(r,"Qullification","Qualification","qualification","Lead Status","Current Status");
+const getMode = r => g(r,"Mode","Meeting_Type","Meeting Type","MeetingType","Type","type","mode");
+const getStatus = r => g(r,"Current Status","Status","status","Meeting Stage");
+const getNext = r => g(r,"Next_Action","Next Action","NextAction","Next Step","next_step","Meeting Stage");
+const getName = r => g(r,"Name","name","Company","company","Startup","startup","Organisation","organization");
+const getContact = r => g(r,"Contact","Contact Person","contact","Person","person","Title","title");
+const getDate = r => g(r,"Date of Meeting","Date","date");
+const getMonth = r => g(r,"Month","month");
+const getProgram = r => g(r,"Program","program");
 
+const isHot  = r => getQual(r).toLowerCase()==="hot";
+const isWarm = r => getQual(r).toLowerCase()==="warm";
+const isCold = r => getQual(r).toLowerCase()==="cold";
+const isNQ   = r => { const q=getQual(r).toLowerCase(); return q==="nq"||q==="not qualified"; };
+const isVirt = r => getMode(r).toLowerCase()==="virtual";
+const isIP   = r => getMode(r).toLowerCase().includes("person");
+
+// ── MAIN RENDER ───────────────────────────────────────────────────────
 function renderDashboard(month, team, program) {
   const eRows = rows(sheetE, month, team, program);
   const mRows = rows(sheetM, month, team, program);
 
-  // Email stats
-  const sent      = eRows.reduce((s,r)=>s+n(g(r,"Sent","sent","Emails Sent")),0);
+  // ── EMAIL STATS ──
+  // Your Apps Script sends: Sent, Delivered, Unique_Opens, Unique_Clicks, Unique_Replies, Bounces
+  const sent      = eRows.reduce((s,r)=>s+n(g(r,"Sent","sent")),0);
   const delivered = eRows.reduce((s,r)=>s+n(g(r,"Delivered","delivered")),0);
-  const opens     = eRows.reduce((s,r)=>s+n(g(r,"Opens","opens","Unique Opens")),0);
-  const clicks    = eRows.reduce((s,r)=>s+n(g(r,"Clicks","clicks","Unique Clicks","Link Clicks")),0);
-  const replies   = eRows.reduce((s,r)=>s+n(g(r,"Replies","replies","Unique Replies")),0);
+  const opens     = eRows.reduce((s,r)=>s+n(g(r,"Unique_Opens","Unique Opens","Opens","opens")),0);
+  const clicks    = eRows.reduce((s,r)=>s+n(g(r,"Unique_Clicks","Unique Clicks","Clicks","clicks")),0);
+  const replies   = eRows.reduce((s,r)=>s+n(g(r,"Unique_Replies","Unique Replies","Replies","replies")),0);
   const bounces   = eRows.reduce((s,r)=>s+n(g(r,"Bounces","bounces")),0);
   const openRate  = sent>0?((opens/sent)*100).toFixed(1):"0.0";
   const clickRate = sent>0?((clicks/sent)*100).toFixed(1):"0.0";
   const replyRate = sent>0?((replies/sent)*100).toFixed(1):"0.0";
 
-  // Meeting stats
+  // ── MEETING STATS ──
   const hot      = mRows.filter(isHot).length;
   const warm     = mRows.filter(isWarm).length;
   const cold     = mRows.filter(isCold).length;
   const nq       = mRows.filter(isNQ).length;
   const virtual  = mRows.filter(isVirt).length;
   const inperson = mRows.filter(isIP).length;
-  const proposals= mRows.filter(r=>g(r,"Next_Action","Next Action","NextAction","Next Step").toLowerCase().includes("proposal")).length;
-  const followups= mRows.filter(r=>g(r,"Next_Action","Next Action","NextAction","Next Step").toLowerCase().includes("follow")).length;
+  const proposals= mRows.filter(r=>getNext(r).toLowerCase().includes("proposal")).length;
+  const followups= mRows.filter(r=>getNext(r).toLowerCase().includes("follow")).length;
 
-  // Table rows with quick filter
+  // ── QUICK FILTER ──
   let tRows = [...mRows];
   if      (activeQuickFilter==="hot")      tRows=tRows.filter(isHot);
   else if (activeQuickFilter==="warm")     tRows=tRows.filter(isWarm);
@@ -369,12 +386,12 @@ function renderDashboard(month, team, program) {
   else if (activeQuickFilter==="virtual")  tRows=tRows.filter(isVirt);
   else if (activeQuickFilter==="inperson") tRows=tRows.filter(isIP);
 
-  // Monthly bar chart
+  // ── MONTHLY BAR CHART ──
   const months = ["Oct-25","Nov-25","Dec-25","Jan-26","Feb-26","Mar-26"];
   const allE = allData[sheetE]||[];
   const monthly = months.map(m=>({
     m, sent: allE.filter(r=>g(r,"Month","month")===m&&(team==="All"||g(r,"Team","team")===team))
-              .reduce((s,r)=>s+n(g(r,"Sent","sent","Emails Sent")),0)
+              .reduce((s,r)=>s+n(g(r,"Sent","sent")),0)
   }));
   const maxS = Math.max(...monthly.map(d=>d.sent),1);
 
@@ -383,28 +400,35 @@ function renderDashboard(month, team, program) {
     nq:"⚪ Not Qualified", virtual:"💻 Virtual", inperson:"🏢 In-Person"
   };
 
+  // ── FORMAT DATE ──
+  function fmtDate(d) {
+    if(!d||d==="—") return "—";
+    const dt = new Date(d);
+    if(isNaN(dt)) return d;
+    return dt.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"2-digit"});
+  }
+
   const tableHTML = tRows.length===0
     ? `<tr><td colspan="10" style="text-align:center;color:#bbb;padding:40px;font-style:italic;">No records found for selected filters</td></tr>`
     : tRows.map((r,i)=>`<tr>
         <td style="color:#bbb;font-size:11px">${i+1}</td>
-        <td>${g(r,"Date","date")||"—"}</td>
-        <td>${g(r,"Month","month")||"—"}</td>
-        <td>${g(r,"Program","program")||"—"}</td>
-        <td style="font-weight:600;color:#1565c0">${g(r,"Company","Startup","startup","company","Name","name","Organisation","organization")||"—"}</td>
-        <td>${g(r,"Contact","Contact Person","contact","Person","person")||"—"}</td>
-        <td>${tbadge(g(r,"Meeting_Type","Meeting Type","MeetingType","Type","type"))}</td>
-        <td>${sbadge(g(r,"Status","status"))}</td>
-        <td>${qbadge(g(r,"Qualification","qualification","Lead Status"))}</td>
-        <td style="font-size:12px">${g(r,"Next_Action","Next Action","NextAction","Next Step","next_step")||"—"}</td>
+        <td>${fmtDate(getDate(r))}</td>
+        <td>${getMonth(r)||"—"}</td>
+        <td>${getProgram(r)||"—"}</td>
+        <td style="font-weight:600;color:#1565c0">${getName(r)||"—"}</td>
+        <td style="font-size:12px;color:#555">${getContact(r)||"—"}</td>
+        <td>${tbadge(getMode(r))}</td>
+        <td>${sbadge(getStatus(r))}</td>
+        <td>${qbadge(getQual(r))}</td>
+        <td style="font-size:12px">${getNext(r)||"—"}</td>
       </tr>`).join("");
 
   document.getElementById("mainContent").innerHTML = `
 
-    <!-- DEBUG INFO -->
     <div class="debug-box">
-      📊 Sheets detected: <b>${Object.keys(allData).join(" | ")}</b> &nbsp;|&nbsp;
-      📋 Meetings sheet: <b>${sheetM}</b> (${mRows.length} rows) &nbsp;|&nbsp;
-      📧 Email sheet: <b>${sheetE}</b> (${eRows.length} rows)
+      📊 Sheets: <b>${Object.keys(allData).join(" | ")}</b> &nbsp;|&nbsp;
+      📋 Meetings: <b>${sheetM}</b> (${mRows.length} rows) &nbsp;|&nbsp;
+      📧 Email: <b>${sheetE}</b> (${eRows.length} rows)
     </div>
 
     ${activeQuickFilter?`
@@ -416,7 +440,6 @@ function renderDashboard(month, team, program) {
       <span class="result-count">${tRows.length} record${tRows.length!==1?"s":""}</span>
     </div>`:""}
 
-    <!-- KPI CARDS -->
     <div class="kpi-grid">
       <div class="kpi-card"><div class="value">${sent.toLocaleString()}</div><div class="label">📤 Emails Sent</div></div>
       <div class="kpi-card"><div class="value">${openRate}%</div><div class="label">👁️ Open Rate</div></div>
@@ -428,7 +451,6 @@ function renderDashboard(month, team, program) {
       <div class="kpi-card"><div class="value">${bounces.toLocaleString()}</div><div class="label">⛔ Bounces</div></div>
     </div>
 
-    <!-- FUNNEL + QUALIFICATION -->
     <div class="two-col">
       <div class="card">
         <div class="section-title">📧 Email Funnel</div>
@@ -457,7 +479,6 @@ function renderDashboard(month, team, program) {
       </div>
     </div>
 
-    <!-- MEETING TYPE + NEXT ACTIONS -->
     <div class="two-col">
       <div class="card">
         <div class="section-title">💻 Meeting Type &nbsp;<span style="font-size:10px;color:#aaa;font-weight:400">Click to filter ↓</span></div>
@@ -485,7 +506,6 @@ function renderDashboard(month, team, program) {
       </div>
     </div>
 
-    <!-- MONTHLY TREND -->
     <div class="card" style="margin-bottom:28px">
       <div class="section-title">📈 Monthly Email Volume Trend</div>
       <div class="bar-chart">
@@ -498,7 +518,6 @@ function renderDashboard(month, team, program) {
       </div>
     </div>
 
-    <!-- MEETINGS TABLE -->
     <div class="card">
       <div class="section-title">
         📋 All Meetings & Prospects
@@ -507,7 +526,7 @@ function renderDashboard(month, team, program) {
         </span>
       </div>
       <div class="table-controls">
-        <input class="search-box" id="searchBox" placeholder="🔍 Search company, name, program, notes..." oninput="liveSearch()"/>
+        <input class="search-box" id="searchBox" placeholder="🔍 Search company, name, program..." oninput="liveSearch()"/>
         ${activeQuickFilter?`<button class="clear-btn" onclick="clearQuickFilter()">✕ Clear Filter</button>`:""}
         <span class="result-count" id="resultCount"></span>
       </div>
@@ -516,7 +535,7 @@ function renderDashboard(month, team, program) {
           <thead>
             <tr>
               <th>#</th><th>Date</th><th>Month</th><th>Program</th>
-              <th>Company / Startup</th><th>Contact</th><th>Type</th>
+              <th>Company / Name</th><th>Title</th><th>Mode</th>
               <th>Status</th><th>Qualification</th><th>Next Action</th>
             </tr>
           </thead>

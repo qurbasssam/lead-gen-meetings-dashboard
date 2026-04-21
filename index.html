@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T-Hub Performance Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0f1a; color: #e0e0e0; }
+
+  .header {
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    padding: 30px 40px;
+    text-align: center;
+    border-bottom: 2px solid #e94560;
+  }
+  .header h1 { font-size: 28px; color: #fff; letter-spacing: 1px; }
+  .header p { color: #a0a0c0; margin-top: 6px; font-size: 14px; }
+  .last-updated { color: #e94560; font-size: 12px; margin-top: 4px; }
+
+  .filters {
+    display: flex; gap: 16px; padding: 20px 40px;
+    background: #16213e; flex-wrap: wrap; align-items: center;
+    border-bottom: 1px solid #0f3460;
+  }
+  .filters label { color: #a0a0c0; font-size: 13px; font-weight: 600; }
+  .filters select {
+    background: #0f3460; color: #fff; border: 1px solid #e94560;
+    padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer;
+  }
+  .filters select:focus { outline: none; border-color: #fff; }
+  .refresh-btn {
+    margin-left: auto; background: #e94560; color: #fff;
+    border: none; padding: 9px 20px; border-radius: 6px;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s;
+  }
+  .refresh-btn:hover { background: #c73652; }
+
+  .container { padding: 30px 40px; }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px; margin-bottom: 30px;
+  }
+  .kpi-card {
+    background: linear-gradient(135deg, #16213e, #1a2744);
+    border: 1px solid #0f3460; border-radius: 12px;
+    padding: 20px; text-align: center;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-3px); border-color: #e94560; }
+  .kpi-card .value { font-size: 32px; font-weight: 700; color: #e94560; }
+  .kpi-card .label { font-size: 12px; color: #a0a0c0; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-card .sublabel { font-size: 11px; color: #4caf50; margin-top: 4px; }
+
+  /* Section titles */
+  .section-title {
+    font-size: 16px; font-weight: 700; color: #fff;
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 2px solid #e94560;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Two-col layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 30px; }
+  @media(max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #16213e; border: 1px solid #0f3460;
+    border-radius: 12px; padding: 24px;
+  }
+
+  /* Funnel */
+  .funnel-row {
+    display: flex; align-items: center; margin-bottom: 12px; gap: 12px;
+  }
+  .funnel-label { width: 130px; font-size: 13px; color: #a0a0c0; }
+  .funnel-bar-wrap { flex: 1; background: #0f1a2e; border-radius: 4px; height: 28px; overflow: hidden; }
+  .funnel-bar { height: 100%; border-radius: 4px; display: flex; align-items: center;
+    padding-left: 10px; font-size: 12px; font-weight: 600; color: #fff;
+    transition: width 0.8s ease; }
+  .funnel-value { width: 60px; text-align: right; font-weight: 700; color: #e94560; font-size: 14px; }
+
+  /* Qual pills */
+  .qual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .qual-pill {
+    border-radius: 10px; padding: 16px; text-align: center;
+    border: 1px solid transparent;
+  }
+  .qual-pill.hot { background: rgba(233,69,96,0.15); border-color: #e94560; }
+  .qual-pill.warm { background: rgba(255,167,38,0.15); border-color: #ffa726; }
+  .qual-pill.cold { background: rgba(66,165,245,0.15); border-color: #42a5f5; }
+  .qual-pill.nq { background: rgba(150,150,150,0.1); border-color: #666; }
+  .qual-pill .num { font-size: 28px; font-weight: 700; }
+  .qual-pill.hot .num { color: #e94560; }
+  .qual-pill.warm .num { color: #ffa726; }
+  .qual-pill.cold .num { color: #42a5f5; }
+  .qual-pill.nq .num { color: #999; }
+  .qual-pill .qlabel { font-size: 12px; color: #a0a0c0; margin-top: 4px; }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th {
+    background: #0f3460; color: #a0c4ff; padding: 10px 12px;
+    text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase;
+  }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid #1e2d4a; color: #d0d0e0; }
+  .data-table tr:hover td { background: rgba(233,69,96,0.05); }
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge.hot { background: rgba(233,69,96,0.2); color: #e94560; border: 1px solid #e94560; }
+  .badge.warm { background: rgba(255,167,38,0.2); color: #ffa726; border: 1px solid #ffa726; }
+  .badge.cold { background: rgba(66,165,245,0.2); color: #42a5f5; border: 1px solid #42a5f5; }
+  .badge.nq { background: rgba(150,150,150,0.15); color: #999; border: 1px solid #555; }
+  .badge.done { background: rgba(76,175,80,0.2); color: #4caf50; border: 1px solid #4caf50; }
+  .badge.progress { background: rgba(255,193,7,0.2); color: #ffc107; border: 1px solid #ffc107; }
+
+  /* Monthly chart */
+  .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 120px; padding: 0 10px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.8s ease; min-height: 4px; }
+  .bar-month { font-size: 11px; color: #a0a0c0; }
+  .bar-val { font-size: 10px; color: #e94560; font-weight: 600; }
+
+  /* Program impact */
+  .program-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .program-card {
+    background: #1a1a2e; border: 1px solid #0f3460; border-radius: 10px;
+    padding: 16px; transition: border-color 0.2s;
+  }
+  .program-card:hover { border-color: #e94560; }
+  .program-card .prog-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .program-card .prog-team { font-size: 11px; color: #a0a0c0; margin-bottom: 10px; }
+  .program-card .prog-metric { font-size: 11px; color: #a0a0c0; }
+  .program-card .prog-value { font-size: 26px; font-weight: 700; color: #4caf50; }
+
+  .loading {
+    text-align: center; padding: 60px;
+    color: #a0a0c0; font-size: 16px;
+  }
+  .spinner {
+    display: inline-block; width: 30px; height: 30px;
+    border: 3px solid #0f3460; border-top-color: #e94560;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin-right: 12px; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box {
+    background: rgba(233,69,96,0.1); border: 1px solid #e94560;
+    border-radius: 8px; padding: 20px; color: #e94560; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 T-Hub Performance Dashboard</h1>
+  <p>Lead Gen Specialist · CI + Delivery · Email Channel · Oct 2025 – Mar 2026</p>
+  <div class="last-updated" id="lastUpdated">Loading data...</div>
+</div>
+
+<div class="filters">
+  <label>📅 Month</label>
+  <select id="filterMonth" onchange="applyFilters()">
+    <option value="All">All Months</option>
+    <option value="Oct-25">Oct 2025</option>
+    <option value="Nov-25">Nov 2025</option>
+    <option value="Dec-25">Dec 2025</option>
+    <option value="Jan-26">Jan 2026</option>
+    <option value="Feb-26">Feb 2026</option>
+    <option value="Mar-26">Mar 2026</option>
+  </select>
+
+  <label>👥 Team</label>
+  <select id="filterTeam" onchange="applyFilters()">
+    <option value="All">All Teams</option>
+    <option value="CI">CI</option>
+    <option value="Delivery">Delivery</option>
+  </select>
+
+  <label>📁 Program</label>
+  <select id="filterProgram" onchange="applyFilters()">
+    <option value="All">All Programs</option>
+    <option value="CI Outreach">CI Outreach</option>
+    <option value="XDC / Shealth.ai">XDC / Shealth.ai</option>
+    <option value="Kotak Outreach">Kotak Outreach</option>
+    <option value="Kotak Roadshow">Kotak Roadshow</option>
+    <option value="Youth Co-Lab">Youth Co-Lab</option>
+    <option value="Honda Outreach">Honda Outreach</option>
+    <option value="Telangana Founders">Telangana Founders</option>
+  </select>
+
+  <button class="refresh-btn" onclick="loadData()">🔄 Refresh Live Data</button>
+</div>
+
+<div class="container" id="mainContent">
+  <div class="loading"><span class="spinner"></span>Fetching live data from Google Sheets...</div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG — REPLACE WITH YOUR DEPLOYED WEB APP URL
+// ============================================================
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwo8AVxoP02NFxUv90DLl0YTmWDaI4BuWC4ihH8z2bbcqbNKhZJ8lUyVvFKacUdzDle/exec";
+// ============================================================
+
+let allData = {};
+
+async function loadData() {
+  document.getElementById("mainContent").innerHTML =
+    '<div class="loading"><span class="spinner"></span>Fetching live data from Google Sheets...</div>';
+
+  try {
+    const res = await fetch(WEB_APP_URL);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    allData = await res.json();
+    document.getElementById("lastUpdated").textContent =
+      "Last updated: " + new Date().toLocaleString();
+    applyFilters();
+  } catch(err) {
+    document.getElementById("mainContent").innerHTML =
+      `<div class="error-box">
+        ❌ Could not fetch data.<br><br>
+        <strong>Fix:</strong> Make sure your Apps Script Web App is deployed as "Anyone" access.<br>
+        Error: ${err.message}
+      </div>`;
+  }
+}
+
+function applyFilters() {
+  const month = document.getElementById("filterMonth").value;
+  const team = document.getElementById("filterTeam").value;
+  const program = document.getElementById("filterProgram").value;
+  renderDashboard(month, team, program);
+}
+
+function filterRows(sheetName, month, team, program) {
+  const rows = allData[sheetName] || [];
+  return rows.filter(r => {
+    const mMatch = month === "All" || r["Month"] === month || r["month"] === month;
+    const tMatch = team === "All" || r["Team"] === team || r["team"] === team;
+    const pMatch = program === "All" || r["Program"] === program || r["program"] === program;
+    return mMatch && tMatch && pMatch;
+  });
+}
+
+function num(v) { return isNaN(v) || v === "" ? 0 : Number(v); }
+
+function renderDashboard(month, team, program) {
+  // Find the right sheet names dynamically
+  const sheetNames = Object.keys(allData);
+
+  // Email data sheet
+  const emailSheet = sheetNames.find(s =>
+    s.toLowerCase().includes("email") || s.toLowerCase().includes("master")) || sheetNames[1] || "";
+  // Meetings data sheet
+  const meetSheet = sheetNames.find(s =>
+    s.toLowerCase().includes("meeting")) || sheetNames[0] || "";
+
+  const emailRows = filterRows(emailSheet, month, team, program);
+  const meetRows = filterRows(meetSheet, month, team, program);
+
+  // === EMAIL METRICS ===
+  const totalSent = emailRows.reduce((s,r) => s + num(r["Sent"] || r["sent"]), 0);
+  const totalDelivered = emailRows.reduce((s,r) => s + num(r["Delivered"] || r["delivered"]), 0);
+  const totalOpens = emailRows.reduce((s,r) => s + num(r["Unique Opens"] || r["Opens"] || r["opens"]), 0);
+  const totalClicks = emailRows.reduce((s,r) => s + num(r["Unique Clicks"] || r["Clicks"] || r["clicks"]), 0);
+  const totalReplies = emailRows.reduce((s,r) => s + num(r["Unique Replies"] || r["Replies"] || r["replies"]), 0);
+  const totalBounces = emailRows.reduce((s,r) => s + num(r["Bounces"] || r["bounces"]), 0);
+
+  const openRate = totalSent > 0 ? ((totalOpens / totalSent) * 100).toFixed(1) : 0;
+  const clickRate = totalSent > 0 ? ((totalClicks / totalSent) * 100).toFixed(1) : 0;
+  const replyRate = totalSent > 0 ? ((totalReplies / totalSent) * 100).toFixed(1) : 0;
+
+  // === MEETINGS METRICS ===
+  const totalMeetings = meetRows.length;
+  const virtual = meetRows.filter(r => (r["Meeting_Type"] || r["Meeting Type"] || "").toLowerCase() === "virtual").length;
+  const inperson = meetRows.filter(r => (r["Meeting_Type"] || r["Meeting Type"] || "").toLowerCase() === "in-person").length;
+  const hot = meetRows.filter(r => (r["Qualification"] || "").toLowerCase() === "hot").length;
+  const warm = meetRows.filter(r => (r["Qualification"] || "").toLowerCase() === "warm").length;
+  const cold = meetRows.filter(r => (r["Qualification"] || "").toLowerCase() === "cold").length;
+  const nq = meetRows.filter(r => (r["Qualification"] || "").toLowerCase() === "not qualified").length;
+  const proposals = meetRows.filter(r => (r["Next_Action"] || r["Next Action"] || "").includes("Proposal")).length;
+  const followups = meetRows.filter(r => (r["Next_Action"] || r["Next Action"] || "").includes("Follow")).length;
+
+  // Monthly email trend
+  const months = ["Oct-25","Nov-25","Dec-25","Jan-26","Feb-26","Mar-26"];
+  const allEmailRows = allData[emailSheet] || [];
+  const monthlyData = months.map(m => {
+    const mRows = allEmailRows.filter(r => (r["Month"] || r["month"]) === m &&
+      (team === "All" || (r["Team"] || r["team"]) === team));
+    return {
+      month: m,
+      sent: mRows.reduce((s,r) => s + num(r["Sent"] || r["sent"]), 0)
+    };
+  });
+  const maxSent = Math.max(...monthlyData.map(d => d.sent), 1);
+
+  // All meetings for table
+  const allMeetRows = (allData[meetSheet] || []).filter(r => {
+    const mMatch = month === "All" || (r["Month"] || r["month"]) === month;
+    const tMatch = team === "All" || (r["Team"] || r["team"]) === team;
+    return mMatch && tMatch;
+  }).slice(0, 50);
+
+  // Program impact
+  const programStats = [
+    { name: "CI Outreach", team: "CI", metric: "Replies", value: (allData[emailSheet]||[]).filter(r=>(r["Program"]||r["program"])==="CI Outreach").reduce((s,r)=>s+num(r["Unique Replies"]||r["Replies"]||0),0) },
+    { name: "Kotak Outreach", team: "Delivery", metric: "Registrations", value: 750 },
+    { name: "XDC / Shealth.ai", team: "Delivery", metric: "Meetings", value: (allData[meetSheet]||[]).filter(r=>(r["Program"]||r["program"])==="XDC / Shealth.ai").length },
+    { name: "Honda Outreach", team: "Delivery", metric: "Clicks", value: (allData[emailSheet]||[]).filter(r=>(r["Program"]||r["program"])==="Honda Outreach").reduce((s,r)=>s+num(r["Unique Clicks"]||r["Clicks"]||0),0) },
+    { name: "Youth Co-Lab", team: "Delivery", metric: "Clicks", value: (allData[emailSheet]||[]).filter(r=>(r["Program"]||r["program"])==="Youth Co-Lab").reduce((s,r)=>s+num(r["Unique Clicks"]||r["Clicks"]||0),0) },
+    { name: "Telangana Founders", team: "Funding", metric: "Leads", value: (allData[meetSheet]||[]).filter(r=>(r["Program"]||r["program"])==="Telangana Founders").length },
+  ];
+
+  document.getElementById("mainContent").innerHTML = `
+    <!-- KPI ROW -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="value">${totalSent.toLocaleString()}</div>
+        <div class="label">📤 Emails Sent</div>
+      </div>
+      <div class="kpi-card">
+        <div class="value">${openRate}%</div>
+        <div class="label">👁️ Open Rate</div>
+        <div class="sublabel">↑ Above Industry Avg</div>
+      </div>
+      <div class="kpi-card">
+        <div class="value">${clickRate}%</div>
+        <div class="label">🖱️ Click Rate</div>
+      </div>
+      <div class="kpi-card">
+        <div class="value">${replyRate}%</div>
+        <div class="label">💬 Reply Rate</div>
+      </div>
+      <div class="kpi-card">
+        <div class="value">${totalMeetings}</div>
+        <div class="label">🤝 Meetings Done</div>
+      </div>
+      <div class="kpi-card">
+        <div class="value">${hot}</div>
+        <div class="label">🔥 Hot Leads</div>
+        <div class="sublabel">Ready for Proposal</div>
+      </div>
+      <div class="kpi-card">
+        <div class="value">${proposals}</div>
+        <div class="label">📄 Proposals Sent</div>
+      </div>
+      <div class="kpi-card">
+        <div class="value">${totalBounces.toLocaleString()}</div>
+        <div class="label">⛔ Bounces</div>
+      </div>
+    </div>
+
+    <!-- EMAIL FUNNEL + QUALIFICATION -->
+    <div class="two-col">
+      <div class="card">
+        <div class="section-title">📧 Email Funnel</div>
+        ${funnelRow("Sent", totalSent, totalSent, "#e94560")}
+        ${funnelRow("Delivered", totalDelivered, totalSent, "#4caf50")}
+        ${funnelRow("Opens", totalOpens, totalSent, "#2196f3")}
+        ${funnelRow("Clicks", totalClicks, totalSent, "#ff9800")}
+        ${funnelRow("Replies", totalReplies, totalSent, "#9c27b0")}
+      </div>
+
+      <div class="card">
+        <div class="section-title">🎯 Lead Qualification</div>
+        <div class="qual-grid">
+          <div class="qual-pill hot"><div class="num">${hot}</div><div class="qlabel">🔥 Hot</div></div>
+          <div class="qual-pill warm"><div class="num">${warm}</div><div class="qlabel">🟠 Warm</div></div>
+          <div class="qual-pill cold"><div class="num">${cold}</div><div class="qlabel">🔵 Cold</div></div>
+          <div class="qual-pill nq"><div class="num">${nq}</div><div class="qlabel">⚪ Not Qualified</div></div>
+        </div>
+        <div style="margin-top:20px;">
+          <div class="section-title" style="font-size:13px; margin-bottom:10px;">⚡ Next Actions</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div style="background:#1a1a2e;border:1px solid #4caf50;border-radius:8px;padding:12px 20px;text-align:center;">
+              <div style="font-size:22px;font-weight:700;color:#4caf50;">${proposals}</div>
+              <div style="font-size:11px;color:#a0a0c0;">📄 Proposals Sent</div>
+            </div>
+            <div style="background:#1a1a2e;border:1px solid #ffa726;border-radius:8px;padding:12px 20px;text-align:center;">
+              <div style="font-size:22px;font-weight:700;color:#ffa726;">${followups}</div>
+              <div style="font-size:11px;color:#a0a0c0;">🔄 Follow-ups</div>
+            </div>
+            <div style="background:#1a1a2e;border:1px solid #42a5f5;border-radius:8px;padding:12px 20px;text-align:center;">
+              <div style="font-size:22px;font-weight:700;color:#42a5f5;">${virtual}</div>
+              <div style="font-size:11px;color:#a0a0c0;">💻 Virtual</div>
+            </div>
+            <div style="background:#1a1a2e;border:1px solid #ce93d8;border-radius:8px;padding:12px 20px;text-align:center;">
+              <div style="font-size:22px;font-weight:700;color:#ce93d8;">${inperson}</div>
+              <div style="font-size:11px;color:#a0a0c0;">🏢 In-Person</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MONTHLY TREND -->
+    <div class="card" style="margin-bottom:30px;">
+      <div class="section-title">📈 Monthly Email Volume Trend</div>
+      <div class="bar-chart">
+        ${monthlyData.map(d => `
+          <div class="bar-col">
+            <div class="bar-val">${d.sent > 0 ? d.sent.toLocaleString() : '-'}</div>
+            <div class="bar" style="height:${d.sent > 0 ? Math.max((d.sent/maxSent)*90, 8) : 4}px;background:linear-gradient(180deg,#e94560,#ff6b6b);"></div>
+            <div class="bar-month">${d.month.replace("-25","").replace("-26","")}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- PROGRAM IMPACT -->
+    <div style="margin-bottom:30px;">
+      <div class="section-title">🚀 Program Impact</div>
+      <div class="program-grid">
+        ${programStats.map(p => `
+          <div class="program-card">
+            <div class="prog-name">${p.name}</div>
+            <div class="prog-team">${p.team} Team</div>
+            <div class="prog-value">${typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</div>
+            <div class="prog-metric">${p.metric}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- MEETINGS TABLE -->
+    <div class="card">
+      <div class="section-title">📋 Meetings Detail View</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Month</th><th>Team</th><th>Program</th>
+              <th>Type</th><th>Status</th><th>Qualification</th><th>Next Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${allMeetRows.length > 0 ? allMeetRows.map(r => `
+              <tr>
+                <td>${r["Month"] || r["month"] || "-"}</td>
+                <td>${r["Team"] || r["team"] || "-"}</td>
+                <td>${r["Program"] || r["program"] || "-"}</td>
+                <td>${r["Meeting_Type"] || r["Meeting Type"] || r["meeting_type"] || "-"}</td>
+                <td><span class="badge done">${r["Status"] || r["status"] || "-"}</span></td>
+                <td>${qualBadge(r["Qualification"] || r["qualification"] || "-")}</td>
+                <td>${r["Next_Action"] || r["Next Action"] || r["next_action"] || "-"}</td>
+              </tr>
+            `).join("") : '<tr><td colspan="7" style="text-align:center;color:#666;padding:30px;">No meetings data found for selected filters</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function funnelRow(label, value, max, color) {
+  const pct = max > 0 ? Math.max((value / max) * 100, 2) : 2;
+  return `<div class="funnel-row">
+    <div class="funnel-label">${label}</div>
+    <div class="funnel-bar-wrap">
+      <div class="funnel-bar" style="width:${pct}%;background:${color};">${value > 0 ? value.toLocaleString() : ''}</div>
+    </div>
+    <div class="funnel-value">${value.toLocaleString()}</div>
+  </div>`;
+}
+
+function qualBadge(q) {
+  const lq = (q || "").toLowerCase();
+  if (lq === "hot") return `<span class="badge hot">🔥 Hot</span>`;
+  if (lq === "warm") return `<span class="badge warm">🟠 Warm</span>`;
+  if (lq === "cold") return `<span class="badge cold">🔵 Cold</span>`;
+  if (lq === "not qualified") return `<span class="badge nq">⚪ Not Qualified</span>`;
+  return `<span class="badge nq">${q}</span>`;
+}
+
+// Auto-refresh every 5 minutes
+setInterval(loadData, 300000);
+loadData();
+</script>
+</body>
+</html>

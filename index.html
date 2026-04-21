@@ -205,7 +205,8 @@ tbody tr:hover td { background:#f5f8ff; }
       <option value="">All Teams</option>
       <option>CI</option>
       <option>Delivery</option>
-    </select>
+      <option>Funding</option>  <!-- ✅ ADD THIS LINE -->
+</select>
   </div>
   <div class="filter-group">
     <label>📁 Program</label>
@@ -251,7 +252,7 @@ tbody tr:hover td { background:#f5f8ff; }
 </div>
 
 <script>
-const GAS_URL = "https://script.google.com/macros/s/AKfycbym4e6zeHvtHJYrdxsMQHxovdxd7HwlBSbViD9Tub5un4TwirRD6jPab78WseWuk5YO/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxIf3WxWUtLXil3Wl491XZwQFNk_v5GFCtyZdVaO0hqWemGie3OoHxV8_HajIUEmhyU/exec";
 
 let RAW = {};          // raw data from Apps Script
 let sheetM = "";       // Meetings_Data key
